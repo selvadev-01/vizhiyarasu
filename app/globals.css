@@ -1,0 +1,1930 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
+/* JetBrains Mono drives the navbar's tracked-caps links and the wordmark
+   subtitle. The reference design leans on a monospace face for that
+   "terminal" feel; Inter alone can't reproduce the even character rhythm. */
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+/* ─────────────────────────────────────────────────────────────────────────
+   THEME TOKENS
+
+   Every color that should adapt to light / dark mode is defined here as a
+   CSS custom property. The default (`:root`) values match the original
+   light palette of the site, so the look is unchanged when no theme is
+   set. `[data-theme="dark"]` overrides those values to produce the dark
+   variant. The theme is applied by setting `data-theme="dark"` on the
+   <html> element (see `app/layout.js` and the theme toggle button).
+
+   Keeping every theme decision in one block makes it easy to tweak the
+   palette later — we never have to chase hex values through the rest of
+   the stylesheet.
+   ───────────────────────────────────────────────────────────────────────── */
+
+:root,
+[data-theme="light"] {
+  --font-inter: 'Inter', sans-serif;
+  --color-bg: #F9F8FF;
+  --color-bg-alt: #ffffff;
+  --color-text: #060607;
+  --color-text-muted: #555555;
+  --color-text-subtle: #888888;
+  --color-accent: #0016EC;
+  --color-accent-soft: #D9E6FF;
+  /* Orbit gradient shades (components/ui/integrations-section.jsx). Stored as
+     bare "R G B" channels rather than hex so Tailwind's slash-opacity syntax
+     (`from-orbit-glow/30`) can compose them.
+
+     Both are deliberately NEUTRAL greys, not the brand blue: the orbit reads
+     as a soft charcoal arc and the accent is reserved for the centre lockup
+     alone, so the eye lands on the middle of the composition. `glow` washes
+     the two static rings; `spin` is the brighter highlight on the hover-only
+     spinning rings. */
+  --orbit-glow: 90 92 104;
+  --orbit-spin: 130 133 148;
+  /* Second spinning ring. The source gave its two hover rings different hues
+     (lime + blue) so they read as distinct layers rather than one thick band;
+     this keeps that idea but uses the brand accent instead of raw lime. */
+  --orbit-spin-alt: 0 22 236;
+  --color-border: #D9E6FF;
+  --color-btn-dark-bg: #2B2E3A;
+  --color-btn-dark-text: #D4D5D7;
+  --color-btn-light-bg: #E3E5EE;
+  --color-btn-light-text: #2B2E3A;
+  --color-btn-sm-bg: #E4E6EF;
+
+  /* ── MagicBento (components/MagicBento) ──
+     --bento-glow is a bare "R G B" triplet for the same reason the orbit
+     tokens above are: it composes with slash-opacity in CSS, AND it is read
+     back out via getComputedStyle and handed to GSAP as a raw string — which
+     only works with channels, not hex. The card surface aliases
+     --color-bg-alt so the palette stays single-source. */
+  --bento-card-bg: var(--color-bg-alt);
+  --bento-card-border: var(--color-border);
+  --bento-glow: 0 22 236;          /* #0016EC — light accent */
+  --bento-glow-strength: 0.28;     /* a light ground needs LESS glow */
+  --bento-spotlight-strength: 0.12;
+
+  /* ── Achievements ledger (components/Achievements) ──
+     Bare "R G B" channels, same reason as --bento-glow: the row edge and wash
+     compose it with slash-opacity. --ach-edge-* are the resting gradient stops
+     for the always-visible accent edge; hover raises its opacity rather than
+     these values, so the edge is a constant the interaction scales. */
+  --ach-accent: 0 22 236;          /* #0016EC — light accent */
+  --ach-edge-strong: 0.85;
+  --ach-edge-soft: 0.25;
+  --ach-wash: 0.05;                /* a light ground needs LESS wash */
+
+  /* shadcn primitive aliases — map shadcn's token names onto this project's
+     palette so components copied from shadcn/ui theme correctly without
+     converting the whole palette to HSL triplets. The right-hand vars flip
+     per theme on their own, so these aliases are identical in both blocks. */
+  --background: var(--color-bg);
+  --foreground: var(--color-text);
+  --card: var(--color-bg-alt);
+  --card-foreground: var(--color-text);
+  --muted: var(--color-btn-sm-bg);
+  --muted-foreground: var(--color-text-muted);
+  --border: var(--color-border);
+  --input: var(--color-border);
+  --ring: var(--color-accent);
+  --primary: var(--color-accent);
+  --primary-foreground: var(--color-bg);
+  --secondary: var(--color-btn-light-bg);
+  --secondary-foreground: var(--color-btn-light-text);
+  --destructive: #DC2626;
+  --destructive-foreground: #ffffff;
+}
+
+[data-theme="dark"] {
+  --color-bg: #0A0A0C;
+  --color-bg-alt: #131318;
+  --color-text: #F9F8FF;
+  --color-text-muted: #A8A8AE;
+  --color-text-subtle: #6E6E76;
+  --color-accent: #4A83FF;
+  --color-accent-soft: #1B2540;
+  /* Dark-mode orbit shades — the reference look: a soft charcoal arc lifting
+     out of a near-black ground. Brighter channels than the light theme
+     because a dark ground swallows a low-opacity wash; the same alpha that
+     reads clearly on #F9F8FF is nearly invisible on #0A0A0C. Kept neutral so
+     the accent stays exclusive to the centre lockup. */
+  --orbit-glow: 150 152 165;
+  --orbit-spin: 190 193 205;
+  /* Dark-theme accent ring — the lighter #4A83FF, which holds up against a
+     near-black ground where the light theme's #0016EC would sink into it. */
+  --orbit-spin-alt: 74 131 255;
+  --color-border: #1F2942;
+  --color-btn-dark-bg: #F9F8FF;
+  --color-btn-dark-text: #060607;
+  --color-btn-light-bg: #1F2942;
+  --color-btn-light-text: #F9F8FF;
+  --color-btn-sm-bg: #1F2942;
+
+  /* ── MagicBento — dark ──
+     Same reasoning as the orbit tokens: an alpha that reads clearly on
+     #F9F8FF is nearly invisible on #0A0A0C, so the dark glow runs hotter. */
+  --bento-card-bg: var(--color-bg-alt);
+  --bento-card-border: var(--color-border);
+  --bento-glow: 74 131 255;        /* #4A83FF — dark accent */
+  --bento-glow-strength: 0.55;
+  --bento-spotlight-strength: 0.20;
+
+  /* ── Achievements ledger — dark ──
+     Same reasoning as the bento tokens above: an alpha that reads on #F9F8FF
+     is nearly invisible on #0A0A0C, so the wash runs hotter. The edge stops
+     stay put — a 2px bar at 0.85 is already solid on either ground. */
+  --ach-accent: 74 131 255;        /* #4A83FF — dark accent */
+  --ach-edge-strong: 0.85;
+  --ach-edge-soft: 0.25;
+  --ach-wash: 0.09;
+
+  /* shadcn primitive aliases — see the light block above. Repeated here so
+     the aliases resolve against the dark palette values. */
+  --background: var(--color-bg);
+  --foreground: var(--color-text);
+  --card: var(--color-bg-alt);
+  --card-foreground: var(--color-text);
+  --muted: var(--color-btn-sm-bg);
+  --muted-foreground: var(--color-text-muted);
+  --border: var(--color-border);
+  --input: var(--color-border);
+  --ring: var(--color-accent);
+  --primary: var(--color-accent);
+  --primary-foreground: var(--color-bg);
+  --secondary: var(--color-btn-light-bg);
+  --secondary-foreground: var(--color-btn-light-text);
+  --destructive: #DC2626;
+  --destructive-foreground: #ffffff;
+}
+
+* {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
+  user-drag: none;
+}
+
+html, body {
+  overscroll-behavior: none;
+  overflow-x: hidden;
+  width: 100%;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  /* Site-wide font family — Inter, matching the hero headline. The hero,
+     slogan, subscribe headings and footer logo each apply their own
+     `font-weight: 600` + `letter-spacing: -0.07em` at the element level, so
+     the headline look stays consistent. We deliberately do NOT set those
+     globally on the body, because cascading semibold + -7% tracking onto
+     every paragraph, button and small UI label makes body copy feel heavy
+     and lets characters overlap. */
+  font-family: var(--font-inter), 'Inter', sans-serif;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  /* Smooth color crossfade when the user toggles themes. Limited to color
+     properties so it doesn't accidentally animate layout-affecting things. */
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+img, svg, video {
+  pointer-events: none;
+  max-width: 100%;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none;
+}
+
+html {
+  scrollbar-width: none;
+}
+
+.nav_btn_lg{
+  @apply rounded-full px-5 h-10 font-[600] text-sm mx-2 font-AeonikMedium
+}
+.nav_btn_dark{
+  background-color: var(--color-btn-dark-bg);
+  color: var(--color-btn-dark-text);
+}
+.nav_btn_light{
+  color: var(--color-btn-light-text);
+  background-color: var(--color-btn-light-bg);
+}
+
+.nav_btn_sm{
+  @apply rounded-full w-10 h-10 mx-2;
+  background-color: var(--color-btn-sm-bg);
+  color: var(--color-btn-light-text);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   INLINE NAVBAR
+
+   The desktop navigation is a row of monospace tracked-caps links rather
+   than a dropdown. `.nav_link` is the resting state (muted) and
+   `.nav_link_active` marks the section currently in view — white text with
+   a rule beneath it. The underline is drawn as a pseudo-element rather
+   than `text-decoration` so it can sit a few pixels below the baseline and
+   animate its width on hover without shifting the text.
+   ───────────────────────────────────────────────────────────────────────── */
+.nav_link{
+  @apply relative font-mono text-[0.78rem] font-medium uppercase tracking-[0.18em] transition-colors duration-200;
+  color: var(--color-text-muted);
+}
+.nav_link:hover{
+  color: var(--color-text);
+}
+.nav_link::after{
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -0.45rem;
+  height: 1px;
+  width: 0;
+  background-color: currentColor;
+  transition: width 0.25s ease;
+}
+.nav_link:hover::after{
+  width: 100%;
+}
+.nav_link_active{
+  color: var(--color-text);
+}
+.nav_link_active::after{
+  width: 100%;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   ORBIT NODE TOOLTIP
+
+   Each tool icon in the Achievements orbit carries its name, which used to
+   be `sr-only` — readable by assistive tech but invisible to a mouse user,
+   so hovering an icon told you nothing. `.orbit-tip` draws that same label
+   as a floating chip above the node on hover or keyboard focus.
+
+   The chip is `position: absolute` inside the node (`.orbit-node` is the
+   positioning context) and `pointer-events: none` so it can never swallow a
+   hover and flicker. `white-space: nowrap` plus the centring translate keeps
+   multi-word labels ("Git & GitHub Actions") on one line, overflowing the
+   node's width symmetrically rather than wrapping inside it.
+   ───────────────────────────────────────────────────────────────────────── */
+/* NB: `.orbit-node` deliberately sets no `position`. The ring nodes get
+   `absolute` from their own Tailwind utility classes, and a `position` here
+   would override it (this rule is emitted after Tailwind's utilities) and
+   collapse every node onto the orbit's centre. The nodes are already a
+   positioning context either way — `relative` on the centred ones, `absolute`
+   on the ring ones — so the tooltip anchors correctly without it. */
+.orbit-tip{
+  @apply pointer-events-none absolute left-1/2 font-mono text-[0.6rem] uppercase tracking-[0.12em] px-2.5 py-1.5 whitespace-nowrap;
+  bottom: calc(100% + 0.5rem);
+  transform: translate(-50%, 0.25rem);
+  z-index: 40;
+  opacity: 0;
+  border: 1px solid var(--color-border);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.orbit-node:hover .orbit-tip,
+.orbit-node:focus-visible .orbit-tip{
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+/* The centre node sits at the bottom of the orbit with the two rings above
+   it, so a tooltip drawn upward would land on top of the artwork. Flip it
+   below the node instead. */
+.orbit-node-center .orbit-tip{
+  bottom: auto;
+  top: calc(100% + 0.5rem);
+  transform: translate(-50%, -0.25rem);
+}
+.orbit-node-center:hover .orbit-tip,
+.orbit-node-center:focus-visible .orbit-tip{
+  transform: translate(-50%, 0);
+}
+
+/* Reduced motion: keep the fade (it carries no movement) but drop the slide
+   so the chip simply appears in place. */
+@media (prefers-reduced-motion: reduce){
+  .orbit-tip{
+    transition: opacity 0.2s ease;
+    transform: translate(-50%, 0);
+  }
+  .orbit-node-center .orbit-tip{
+    transform: translate(-50%, 0);
+  }
+}
+
+/* Bordered CTA ("HIRE ME") — square-ish outline button in the same tracked
+   mono caps, inverting to solid on hover. */
+.nav_cta{
+  @apply font-mono text-[0.78rem] font-medium uppercase tracking-[0.18em] px-6 h-10 flex items-center justify-center transition-colors duration-200;
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+}
+.nav_cta:hover{
+  background-color: var(--color-text);
+  color: var(--color-bg);
+  border-color: var(--color-text);
+}
+
+/* Borderless sibling of `.nav_cta` for the resume download. Same type and
+   height so it aligns with the CTA row, but no outline — that keeps
+   "HIRE ME" reading as the single primary action. */
+.nav_cta_ghost{
+  @apply font-mono text-[0.78rem] font-medium uppercase tracking-[0.18em] gap-2 px-3 h-10 flex items-center justify-center transition-colors duration-200;
+  border: 1px solid transparent;
+  color: var(--color-text-muted);
+}
+.nav_cta_ghost:hover{
+  color: var(--color-text);
+  border-color: var(--color-border);
+}
+
+/* Icon-only square button (theme toggle) sitting left of the CTA. */
+.nav_icon_btn{
+  @apply w-9 h-9 flex items-center justify-center transition-colors duration-200;
+  color: var(--color-text-muted);
+}
+.nav_icon_btn:hover{
+  color: var(--color-text);
+}
+
+@font-face{
+  font-family: "Aeonik";
+  src: url('/fonts/Aeonik/Aeonik-Regular.otf') format('opentype');
+}
+@font-face{
+  font-family: "AeonikBold";
+  src: url('/fonts/Aeonik/Aeonik-Bold.otf') format('opentype');
+}
+@font-face{
+  font-family: "AeonikMedium";
+  src: url('/fonts/Aeonik/Aeonik-Medium.otf') format('opentype');
+}
+ 
+.container {
+  margin: 0 auto;
+  width: 250px;
+  height: 200px;
+  position: relative;
+  perspective: 1000px;
+}
+
+.carousel {
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  transform-style: preserve-3d;
+  transition: transform 1s;
+}
+
+.item {
+  display: block;
+  position: absolute;
+  background: #000;
+  width: 400px;
+  height: 100px;
+  line-height: 200px;
+  font-size: 5em;
+  text-align: center;
+  color: #FFF;
+  opacity: 0.95;
+  border-radius: 10px;
+}
+
+.a {
+  transform: rotateX(0deg) translateZ(250px);
+  background: #ed1c24;
+}
+.b {
+  transform: rotateX(60deg) translateZ(250px);
+  background: #0072bc;
+}
+.c {
+  transform: rotateX(120deg) translateZ(250px);
+  background: #39b54a;
+}
+.d {
+  transform: rotateX(180deg) translateZ(250px);
+  background: #f26522;
+}
+.e {
+  transform: rotateX(240deg) translateZ(250px);
+  background: #630460;
+} 
+.f {
+  transform: rotateX(300deg) translateZ(250px);
+  background: #8c6239;
+}
+
+/* ── LOADER ── */
+
+#loader {
+  width: 100%;
+  height: 100vh;
+  position: fixed;
+  inset: 0;
+  z-index: 100002;
+  touch-action: none;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  background-color: black;
+}
+
+#loader-counter {
+  color: #F9F8FF;
+  font-size: 6vw;
+  font-family: var(--font-inter), 'Inter', sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.07em;
+  padding: 2vw 3vw;
+  pointer-events: none;
+}
+
+/* ── HERO SECTION ── */
+
+#hero-section {
+  width: 100%;
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+  background-color: var(--color-bg);
+}
+
+/* Parallax layer wrappers — direct children of #hero-section.
+   Each fills the hero so inner absolute children keep their original
+   centering. parallax-js applies translate3d() transforms on these. */
+.hero-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  will-change: transform;
+}
+
+/* Animated fluid background layer (LiquidEther). Sits beneath all
+   parallax layers (which start at z-index 4). Pointer events are
+   disabled because the fluid simulation listens for mouse moves on
+   `window` directly and uses the container rect for hit-testing. */
+#hero-bg-fluid {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.25;
+}
+
+/* End-of-hero indicator line */
+.hero-end-line {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 6px;
+  background-color: var(--color-text);
+  z-index: 20;
+}
+
+/* Anchored to the bottom of the hero rather than vertically centred: the
+   portrait is meant to stand on the breaker line, so pinning `bottom: 0`
+   keeps the head inside the viewport at every height. Centring a 110vh box
+   in a 100vh clipped section pushed the subject below the fold. */
+#hero-img {
+  position: absolute;
+  bottom: 0;
+  left: calc(50% - 40px);
+  transform: translateX(-50%);
+  width: 88vh;
+  height: 82vh;
+  z-index: 10;
+}
+
+/* `contain` (not `cover`) so the whole subject stays visible — with `cover`
+   the box crop decides what you see, which is what hid the lower half. */
+#hero-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: bottom center;
+}
+
+#hero-stroke-1 {
+  position: absolute;
+  top: 65%;
+  left: -2%;
+  transform: translateY(-50%);
+  width: 22vw;
+  height: 32vh;
+  pointer-events: none;
+  /* ABOVE the heading text */
+  z-index: 11;
+  overflow: hidden;
+}
+
+#hero-stroke-1 img {
+  width: 22vw;
+  height: 100%;
+  object-fit: cover;
+  /* Use mask + background-color to get exact #D9E6FF */
+  visibility: hidden;
+}
+
+#hero-stroke-1::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-color: var(--color-accent-soft);
+  -webkit-mask-image: url('/Svg_Stroke.png');
+  mask-image: url('/Svg_Stroke.png');
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  pointer-events: none;
+}
+
+#hero-stroke-2 {
+  position: absolute;
+  top: 12%;
+  right: 0%;
+  width: 16vw;
+  height: 26vh;
+  transform: rotateY(180deg);
+  pointer-events: none;
+  /* UNDER the heading text */
+  z-index: 4;
+  overflow: hidden;
+}
+
+#hero-stroke-2 img {
+  width: 16vw;
+  height: 100%;
+  object-fit: cover;
+  visibility: hidden;
+}
+
+#hero-stroke-2::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-color: var(--color-accent-soft);
+  -webkit-mask-image: url('/Svg_Stroke.png');
+  mask-image: url('/Svg_Stroke.png');
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  pointer-events: none;
+}
+
+#hero-heading {
+  color: var(--color-text);
+  position: absolute;
+  /* Anchored from the block's TOP edge, below the fixed navbar band, rather
+     than centred on a percentage. The navbar is ~7.5rem tall (pt-8 + pb-6 +
+     wordmark) and paints above the hero, so centring a four-line block by
+     percentage ran the first line up underneath it. */
+  top: 7.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  /* Sized for the longest line of the stacked wordmark — the 11-character
+     "VIZHIYARASU". `nowrap` keeps each line intact, so this has to stay small
+     enough to avoid overflowing the viewport width at any breakpoint. */
+  font-size: 13.5vw;
+  text-align: center;
+  font-family: var(--font-inter), 'Inter', sans-serif;
+  z-index: 5;
+  font-weight: 600;
+  letter-spacing: -0.07em;
+  text-transform: uppercase;
+  pointer-events: none;
+  white-space: nowrap;
+  line-height: 0.9;
+}
+
+/* One line of the wordmark. Block-level so the first and last name stack;
+   the char spans inside stay inline-block for the GSAP stagger. */
+.hero-line {
+  display: block;
+}
+
+/* Job role — the full title, set small and right-aligned under the wordmark.
+   Tracking is lighter than a one-word label would take: at 20+ characters a
+   line, 0.32em would push it wider than the name above it. */
+#hero-role {
+  display: block;
+  text-align: right;
+  font-size: 1.35vw;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  line-height: 1.5;
+  margin-top: 1vw;
+  /* Insets the trailing letter-space so the last glyph optically aligns with
+     the wordmark's right edge rather than sitting a sliver inside it. */
+  padding-right: 0.18em;
+  color: var(--color-text);
+  opacity: 0.72;
+}
+
+/* ── PROJECTS SECTION ── */
+
+#projects-section {
+  width: 100%;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  padding: 6vw 5vw 7vw 5vw;
+  position: relative;
+  z-index: 2;
+  font-family: var(--font-inter), 'Inter', sans-serif;
+}
+
+.about-inline-services {
+  color: var(--color-text);
+  font-family: var(--font-inter), 'Inter', sans-serif;
+}
+
+.about-inline-services__head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 3vw;
+  border-bottom: 1.5px solid var(--color-border);
+  padding-bottom: 0.8vw;
+  margin-bottom: 1.2vw;
+}
+
+.about-inline-services__label {
+  /* clamp() floors these at a legible size: a bare vw value rendered ~9.6px
+     at 1280px wide, below the 12px minimum for readable text. */
+  font-size: clamp(0.75rem, 0.75vw, 0.875rem);
+  letter-spacing: 0.28em;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--color-text);
+}
+
+.about-inline-services__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 1.5px solid var(--color-border);
+  gap: 1.2vw;
+  /* Rows size to their content: the container is height:auto now that six
+     skill groups live here, so a 1fr auto-row stretch has nothing to divide. */
+  grid-auto-rows: auto;
+}
+
+.about-inline-services__item {
+  padding: 1.1vw 0;
+  border-bottom: 1.5px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.about-inline-services__item:nth-child(odd) {
+  padding-right: 1.1vw;
+  border-right: 1.5px solid var(--color-border);
+}
+
+.about-inline-services__item:nth-child(even) {
+  padding-left: 1.1vw;
+}
+
+.about-inline-services__item h4 {
+  margin: 0;
+  font-size: clamp(1rem, 1.2vw, 1.5rem);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1.12;
+}
+
+.about-inline-services__item p {
+  margin: 0.5vw 0 0;
+  max-width: 52ch;
+  font-size: clamp(0.8125rem, 0.85vw, 1rem);
+  line-height: 1.5;
+  /* 0.8 opacity on the muted foreground dropped body text near the 4.5:1
+     contrast floor; 0.85 keeps the tonal hierarchy and stays compliant. */
+  opacity: 0.85;
+}
+
+/* ── SPLIT TEXT ──
+   Per-character spans produced by components/utils/SplitText.jsx. The chars are
+   inline-block so GSAP can transform them individually; the word wrapper stays
+   plain inline so text still wraps at spaces rather than mid-word.
+
+   `will-change` is deliberately omitted: these sections can contain hundreds of
+   chars at once and promoting every one to its own layer costs more than the
+   tween saves. */
+.split-char {
+  display: inline-block;
+}
+
+.split-word {
+  /* Keeps a word's characters together when the line wraps. */
+  display: inline;
+  white-space: pre;
+}
+
+.pj-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 3vw;
+  border-bottom: 1.5px solid var(--color-border);
+  padding-bottom: 2vw;
+  margin-bottom: 1vw;
+}
+
+.pj-label {
+  font-size: 0.95vw;
+  letter-spacing: 0.28em;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--color-text);
+}
+
+.pj-title {
+  font-size: 5vw;
+  font-weight: 600;
+  letter-spacing: -0.05em;
+  line-height: 1;
+  margin: 0;
+  text-transform: lowercase;
+  color: var(--color-text);
+}
+
+/* Clips the split characters so a `yPercent` slide reads as text rising out of
+   the line rather than drifting over whatever sits above it. Applied to the
+   word (not the char) so descenders aren't cut once the tween settles —
+   padding restores the room the clip would otherwise steal. */
+.pj-title .split-word,
+.pj-name .split-word {
+  display: inline-block;
+  overflow: hidden;
+  padding-bottom: 0.12em;
+  margin-bottom: -0.12em;
+  vertical-align: bottom;
+}
+
+.pj-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.pj-row {
+  border-bottom: 1.5px solid var(--color-border);
+}
+
+.pj-link {
+  display: flex;
+  align-items: center;
+  gap: 2.5vw;
+  padding: 2vw 0;
+  text-decoration: none;
+  color: var(--color-text);
+  transition: padding 0.4s ease, color 0.4s ease;
+}
+
+.pj-link:hover {
+  padding-left: 1.4vw;
+  color: var(--color-accent);
+}
+
+.pj-num {
+  font-size: 0.95vw;
+  letter-spacing: 0.2em;
+  font-weight: 500;
+  color: var(--color-text);
+  min-width: 4vw;
+  font-family: var(--font-inter), 'Inter', sans-serif;
+  opacity: 0.6;
+}
+
+.pj-link:hover .pj-num {
+  opacity: 1;
+  color: var(--color-accent);
+}
+
+.pj-meta {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5vw;
+  min-width: 0;
+}
+
+.pj-name {
+  font-size: 4vw;
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+  text-transform: lowercase;
+}
+
+.pj-role {
+  font-size: 1vw;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-weight: 500;
+  opacity: 0.55;
+  color: var(--color-text);
+}
+
+.pj-link:hover .pj-role {
+  opacity: 1;
+  color: var(--color-accent);
+}
+
+.pj-note {
+  font-size: 1vw;
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+  color: var(--color-text);
+  opacity: 0.7;
+  max-width: 60ch;
+}
+
+.pj-link:hover .pj-note {
+  opacity: 1;
+}
+
+.pj-link--static {
+  cursor: default;
+}
+
+.pj-link--static:hover {
+  padding-left: 0;
+  color: var(--color-text);
+}
+
+.pj-link--static:hover .pj-num,
+.pj-link--static:hover .pj-kind,
+.pj-link--static:hover .pj-role {
+  color: var(--color-text);
+  opacity: 0.6;
+}
+
+.pj-link--static:hover .pj-arrow {
+  transform: none;
+}
+
+.pj-dot {
+  font-size: 1.5vw;
+  opacity: 0.4;
+}
+
+.pj-head--secondary {
+  margin-top: 4vw;
+}
+
+.pj-kind {
+  font-size: 0.95vw;
+  letter-spacing: 0.2em;
+  font-weight: 500;
+  text-transform: uppercase;
+  color: var(--color-text);
+  opacity: 0.6;
+  white-space: nowrap;
+}
+
+.pj-link:hover .pj-kind {
+  opacity: 1;
+  color: var(--color-accent);
+}
+
+.pj-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3vw;
+  height: 3vw;
+  transition: transform 0.4s ease;
+}
+
+.pj-link:hover .pj-arrow {
+  transform: translate(0.6vw, -0.6vw);
+}
+
+@media (max-width: 1024px) {
+  .about-inline-services__head {
+    padding-bottom: 1.8vw;
+    margin-bottom: 2.8vw;
+  }
+
+  .about-inline-services__label {
+    font-size: 2.4vw;
+  }
+
+  .about-inline-services__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .about-inline-services__item,
+  .about-inline-services__item:nth-child(odd),
+  .about-inline-services__item:nth-child(even) {
+    padding: 4vw 0;
+    border-right: 0;
+  }
+
+  .about-inline-services__item h4 {
+    font-size: 4.8vw;
+  }
+
+  .about-inline-services__item p {
+    margin-top: 2vw;
+    font-size: 2.4vw;
+    max-width: 60ch;
+  }
+
+  #projects-section {
+    padding: 12vw 6vw;
+  }
+
+  .pj-head {
+    padding-bottom: 4vw;
+    margin-bottom: 2vw;
+  }
+
+  .pj-label {
+    font-size: 2.4vw;
+  }
+
+  .pj-title {
+    font-size: 9vw;
+  }
+
+  .pj-link {
+    gap: 4vw;
+    padding: 4vw 0;
+  }
+
+  .pj-num {
+    font-size: 2.6vw;
+    min-width: 8vw;
+  }
+
+  .pj-name {
+    font-size: 6vw;
+  }
+
+  .pj-role {
+    font-size: 2.4vw;
+  }
+
+  .pj-note {
+    font-size: 2.4vw;
+  }
+
+  .pj-kind {
+    display: none;
+  }
+
+  .pj-arrow {
+    width: 6.5vw;
+    height: 6.5vw;
+  }
+
+  .pj-dot {
+    font-size: 5vw;
+  }
+
+  .pj-head--secondary {
+    margin-top: 8vw;
+  }
+}
+
+@media (max-width: 480px) {
+  .about-inline-services__label {
+    font-size: 3vw;
+  }
+
+  .about-inline-services__item h4 {
+    font-size: 6.8vw;
+  }
+
+  .about-inline-services__item p {
+    font-size: 3.2vw;
+    line-height: 1.5;
+  }
+
+  .pj-label {
+    font-size: 3vw;
+  }
+
+  .pj-title {
+    font-size: 11vw;
+  }
+
+  .pj-num {
+    font-size: 3.2vw;
+  }
+
+  .pj-name {
+    font-size: 7.5vw;
+  }
+
+  .pj-role {
+    font-size: 3vw;
+  }
+
+  .pj-note {
+    font-size: 3vw;
+  }
+
+  .pj-arrow {
+    width: 8vw;
+    height: 8vw;
+  }
+}
+
+/* ── HORIZONTAL SCROLL SECTION ── */
+
+.Horizontal {
+  /* Height is intentionally `auto` — ScrollTrigger.pin wraps `.hs-sticky` in
+     a pin-spacer whose height equals the pin distance + viewport, and that
+     spacer needs to grow this section's box so subsequent sections (Subscribe
+     → footer) are pushed down by exactly that amount. A fixed height here
+     would clamp the section to one viewport and let the footer slide in
+     before the animation is finished. */
+  position: relative;
+  width: 100%;
+  height: auto;
+  background-color: var(--color-bg);
+  z-index: 1;
+}
+
+.Horizontal .hs-sticky {
+  position: relative;
+  top: 0;
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  background-color: var(--color-bg);
+}
+
+.Horizontal__text {
+  display: flex;
+  width: max-content;
+  white-space: nowrap;
+  gap: 4vw;
+  padding-left: 100vw;
+  font-family: var(--font-inter), 'Inter', sans-serif;
+  pointer-events: none;
+  margin: 0;
+}
+
+.Horizontal .heading-xl {
+  font-size: clamp(2rem, 14vw, 12rem);
+  font-weight: 600;
+  line-height: 1.1;
+  color: var(--color-text);
+  letter-spacing: -0.07em;
+  text-transform: lowercase;
+}
+
+.hs-char {
+  display: inline-block;
+  will-change: transform;
+}
+
+/* ── FEATURED HEADER (Beyond Visions / Within Reach) ── */
+.featured-header {
+  font-size: 9rem;
+  line-height: 1;
+}
+
+@media (max-width: 1024px) {
+  .featured-header {
+    font-size: 5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .featured-header {
+    font-size: 3rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .featured-header {
+    font-size: 2.25rem;
+  }
+}
+
+/* ── CONTACT SECTION ── */
+
+#contact-section {
+  width: 100%;
+  height: 90vh;
+  background-color: var(--color-bg);
+  position: relative;
+  overflow: hidden;
+  font-family: var(--font-inter), 'Inter', sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0 6vw;
+  gap: 1vw;
+}
+
+#ct-eyebrow {
+  color: var(--color-text-muted);
+  font-size: 1vw;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  pointer-events: none;
+  white-space: nowrap;
+  margin-bottom: 0.4vw;
+}
+
+#ct-headline {
+  color: var(--color-text);
+  font-size: clamp(3rem, 18vw, 18rem);
+  font-weight: 600;
+  letter-spacing: -0.07em;
+  text-transform: lowercase;
+  pointer-events: none;
+  white-space: nowrap;
+  line-height: 0.9;
+  margin: 0;
+}
+
+#ct-email {
+  color: var(--color-text);
+  font-size: 1.4vw;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+  border-bottom: 1.5px solid currentColor;
+  padding-bottom: 0.2vw;
+  margin-top: 1vw;
+  transition: color 0.3s ease, border-color 0.3s ease;
+}
+
+#ct-email:hover {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+#ct-actions {
+  display: flex;
+  align-items: center;
+  gap: 1vw;
+  margin-top: 1.6vw;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+#ct-btn,
+#ct-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5vw;
+  padding: 0 2vw;
+  height: 4vw;
+  min-height: 48px;
+  border-radius: 5vw;
+  text-decoration: none;
+  font-size: 0.85vw;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  cursor: pointer;
+  transition: background-color 0.4s ease, color 0.4s ease,
+    border-color 0.4s ease, transform 0.3s ease;
+  white-space: nowrap;
+}
+
+#ct-btn {
+  background-color: var(--color-text);
+  color: var(--color-bg);
+  border: 2px solid var(--color-text);
+}
+
+#ct-btn:hover {
+  background-color: var(--color-accent);
+  border-color: var(--color-accent);
+  color: var(--color-bg);
+  transform: translateY(-2px);
+}
+
+#ct-btn-secondary {
+  background-color: transparent;
+  color: var(--color-text);
+  border: 2px solid var(--color-text);
+}
+
+#ct-btn-secondary:hover {
+  background-color: var(--color-accent-soft);
+  border-color: var(--color-accent-soft);
+  color: var(--color-text);
+  transform: translateY(-2px);
+}
+
+#ct-btn svg,
+#ct-btn-secondary svg {
+  flex-shrink: 0;
+  transition: transform 0.3s ease;
+}
+
+#ct-btn:hover svg,
+#ct-btn-secondary:hover svg {
+  transform: translate(2px, -2px);
+}
+
+/* ── FOOTER ── */
+
+#main-footer {
+  width: 100%;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  padding: 5vw 4vw 2vw 4vw;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-inter), 'Inter', sans-serif;
+  /* Sits above the GradualBlur overlay (zIndex 99999 in app/page.js)
+     so the blur effect never visually covers the footer. */
+  z-index: 100000;
+  position: relative;
+}
+
+.footer-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding-bottom: 4vw;
+  border-bottom: 2px solid var(--color-border);
+  gap: 4vw;
+}
+
+.footer-brand {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5vw;
+  width: 40%;
+}
+
+.f-logo {
+  font-family: var(--font-inter), 'Inter', sans-serif;
+  font-size: 5vw;
+  color: var(--color-text);
+  letter-spacing: -0.05em;
+  line-height: 1;
+  font-weight: 700;
+  margin: 0;
+}
+
+.f-desc {
+  font-size: 1.1vw;
+  color: var(--color-text-muted);
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+}
+
+.f-socials {
+  display: flex;
+  gap: 1vw;
+  margin-top: 1vw;
+}
+
+.f-socials a {
+  width: 3vw;
+  height: 3vw;
+  border-radius: 50%;
+  border: 1.5px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text);
+  text-decoration: none;
+  transition: all 0.4s ease;
+  background-color: var(--color-bg-alt);
+}
+
+.f-socials a:hover {
+  background-color: var(--color-accent-soft);
+  transform: translateY(-0.4vw);
+}
+
+.footer-links {
+  display: flex;
+  gap: 6vw;
+}
+
+.f-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8vw;
+}
+
+.f-col h3 {
+  font-family: var(--font-inter), 'Inter', sans-serif;
+  font-size: 1.1vw;
+  color: var(--color-text);
+  letter-spacing: 0.15em;
+  margin-bottom: 0.8vw;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.f-col a {
+  color: var(--color-text);
+  text-decoration: none;
+  font-size: 1vw;
+  font-weight: 400;
+  transition: all 0.3s ease;
+  position: relative;
+  width: fit-content;
+}
+
+.f-col a::after {
+  content: '';
+  position: absolute;
+  width: 0%;
+  height: 1.5px;
+  bottom: -3px;
+  left: 0;
+  background-color: var(--color-text);
+  transition: all 0.3s ease;
+}
+
+.f-col a:hover {
+  color: var(--color-text);
+}
+
+.f-col a:hover::after {
+  width: 100%;
+}
+
+.footer-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 2vw;
+  font-size: 0.85vw;
+  color: var(--color-text-subtle);
+}
+
+.footer-bottom p {
+  margin: 0;
+}
+
+.footer-bottom-links {
+  display: flex;
+  gap: 2vw;
+  align-items: center;
+}
+
+.footer-bottom-links a {
+  color: var(--color-text-subtle);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.footer-bottom-links a:hover {
+  color: var(--color-text);
+}
+
+/* ── MOBILE / TABLET ── */
+@media (max-width: 1024px) {
+  /* Contact — slightly larger eyebrow / button text on tablet */
+  #ct-eyebrow { font-size: 1.4vw; letter-spacing: 0.2em; }
+  #ct-email { font-size: 2vw; }
+  #ct-btn,
+  #ct-btn-secondary {
+    height: 6vh;
+    min-height: 44px;
+    font-size: 1.2vw;
+    padding: 0 3vw;
+  }
+
+  /* Footer — tablet font scaling */
+  .f-logo { font-size: 7vw; }
+  .f-desc { font-size: 1.5vw; }
+  .f-col h3 { font-size: 1.5vw; }
+  .f-col a { font-size: 1.4vw; }
+  .footer-bottom { font-size: 1.2vw; }
+  .f-socials a { width: 4vw; height: 4vw; }
+}
+
+@media (max-width: 768px) {
+  /* Loader — tablet size */
+  #loader-counter {
+    font-size: 13vw;
+    padding-right: 6.5vw;
+    padding-bottom: 11vw;
+  }
+
+  /* Hero — tablet sizing */
+  #hero-section {
+    height: 100svh;
+    min-height: 100svh;
+  }
+
+  #hero-bg-fluid {
+    opacity: 0.18;
+  }
+
+  /* Bottom-anchored like the desktop rule. Centring the box at 54% left the
+     portrait floating with dead space beneath it — the subject is meant to
+     stand on the breaker line at the foot of the hero. */
+  #hero-img {
+    position: absolute;
+    bottom: 0;
+    top: auto;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(88vw, 30rem);
+    max-width: 88vw;
+    height: min(66svh, 40rem);
+    max-height: 66svh;
+    z-index: 10;
+  }
+
+  /* `contain` + bottom framing so the whole subject stays visible, matching
+     desktop. `cover` cropped to fill the box and cut the figure off. */
+  #hero-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: bottom center;
+  }
+
+  #hero-heading {
+    /* Clear of the mobile navbar band (py-5 + wordmark ≈ 5rem) with real
+       breathing room beneath it, rather than butting straight up against
+       the bar. The `vh` term lets the gap grow on taller phones instead of
+       stranding the block at the very top of a long screen. */
+    top: max(7.5rem, 13vh);
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    width: 90%;
+    /* 11 characters at ~0.62em average advance ≈ 6.8em, so the name only
+       clears a 90%-wide box below ~11.5vw. Sized to fit "VIZHIYARASU"
+       whole — anything larger breaks it mid-word. */
+    font-size: clamp(2.5rem, 11vw, 5.5rem);
+    letter-spacing: 0.01em;
+    line-height: 0.92;
+    /* `nowrap`, not `normal`: `.hero-line` already puts the first and last
+       name on their own lines, so any wrapping here can only ever split a
+       name mid-word — which is exactly what it did at 13vw. */
+    white-space: nowrap;
+    text-align: center;
+  }
+
+  /* Centred under the stacked name instead of hung off the right edge —
+     there's no spare horizontal room beside the wordmark on tablet. */
+  #hero-role {
+    text-align: center;
+    font-size: clamp(0.62rem, 2vw, 0.85rem);
+    letter-spacing: 0.16em;
+    line-height: 1.5;
+    margin-top: 1.6vh;
+    padding-right: 0;
+    /* Balances the trailing letter-space so the centred lines sit true. */
+    padding-left: 0.16em;
+  }
+
+  #hero-stroke-1 {
+    top: 68%;
+    left: 3%;
+    width: 30vw;
+    height: 18vh;
+  }
+
+  #hero-stroke-1 img {
+    width: 30vw;
+  }
+
+  #hero-stroke-2 {
+    top: 14%;
+    right: -1%;
+    width: 26vw;
+    height: 16vh;
+  }
+
+  #hero-stroke-2 img {
+    width: 26vw;
+  }
+
+  /* Horizontal scroll — tablet heading scaling */
+  .Horizontal .heading-xl {
+    font-size: clamp(2.2rem, 14vw, 5rem);
+    line-height: 1.05;
+    padding: 0 4vw;
+  }
+
+  /* Contact section — tablet sizing */
+  #contact-section {
+    height: auto;
+    min-height: 70vh;
+    padding: 2vw 5vw;
+    gap: 2.5vw;
+  }
+
+  #ct-eyebrow {
+    font-size: 2.8vw;
+    letter-spacing: 0.15em;
+    white-space: normal;
+  }
+
+  #ct-headline {
+    font-size: clamp(2.8rem, 18vw, 7rem);
+    margin: 1.5vw 0;
+    white-space: normal;
+  }
+
+  #ct-email {
+    font-size: 3.2vw;
+    margin-top: 1.5vw;
+  }
+
+  #ct-actions {
+    margin-top: 3vw;
+    gap: 2.5vw;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  #ct-btn,
+  #ct-btn-secondary {
+    width: 80vw;
+    max-width: 100%;
+    height: auto;
+    min-height: 56px;
+    padding: 18px 24px;
+    font-size: 3vw;
+    letter-spacing: 0.2em;
+  }
+
+  #ct-btn svg,
+  #ct-btn-secondary svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* Footer */
+  #main-footer {
+    padding: 8vw 6vw 6vw 6vw;
+  }
+
+  .footer-top {
+    flex-direction: column;
+    gap: 8vw;
+    padding-bottom: 8vw;
+  }
+
+  .footer-brand {
+    width: 100%;
+    gap: 4vw;
+  }
+
+  .f-logo {
+    font-size: 14vw;
+    line-height: 0.95;
+  }
+
+  .f-desc {
+    font-size: 4vw;
+    line-height: 1.5;
+  }
+
+  .f-socials {
+    gap: 3vw;
+    margin-top: 3vw;
+  }
+
+  .f-socials a {
+    width: 11vw;
+    height: 11vw;
+    min-width: 40px;
+    min-height: 40px;
+    max-width: 48px;
+    max-height: 48px;
+  }
+
+  .footer-links {
+    gap: 10vw;
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .f-col {
+    gap: 3vw;
+  }
+
+  .f-col h3 {
+    font-size: 3.2vw;
+    margin-bottom: 2vw;
+  }
+
+  .f-col a {
+    font-size: 4vw;
+  }
+
+  .footer-bottom {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4vw;
+    padding-top: 6vw;
+    font-size: 3vw;
+  }
+
+  .footer-bottom-links {
+    gap: 4vw;
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 480px) {
+  #hero-heading {
+    /* Same fit constraint as the 768px rule, against a 94% box. */
+    font-size: clamp(2rem, 11.5vw, 4.5rem);
+    top: max(7rem, 12vh);
+    left: 50%;
+    transform: translateX(-50%);
+    width: 94%;
+  }
+
+  /* Inherits `bottom: 0` from the 768px rule — only the box size changes. */
+  #hero-img {
+    width: min(92vw, 26rem);
+    max-width: 92vw;
+    height: min(60svh, 34rem);
+    max-height: 60svh;
+  }
+
+  #hero-stroke-1 {
+    top: 70%;
+    width: 32vw;
+    height: 16vh;
+  }
+
+  #hero-stroke-1 img {
+    width: 32vw;
+  }
+
+  #hero-stroke-2 {
+    top: 12%;
+    width: 28vw;
+    height: 14vh;
+  }
+
+  #hero-stroke-2 img {
+    width: 28vw;
+  }
+
+  #ct-eyebrow {
+    font-size: 3.6vw;
+  }
+
+  #ct-headline {
+    font-size: clamp(3rem, 26vw, 7rem);
+  }
+
+  #ct-email {
+    font-size: 4vw;
+    word-break: break-all;
+    text-align: center;
+  }
+
+  #ct-btn,
+  #ct-btn-secondary {
+    font-size: 3.6vw;
+    width: 86vw;
+  }
+
+  .f-logo {
+    font-size: 16vw;
+  }
+
+  .footer-bottom {
+    font-size: 3.4vw;
+  }
+}
+
+/* ── ULTRA-MOBILE (≤ 480px) EXTRA POLISH ──
+   Small-phone adjustments that layer on top of the 768px rules above.
+   Touch targets stay ≥44px, long words break cleanly, and elements
+   never exceed the viewport width. */
+@media (max-width: 480px) {
+  /* Projects — make long names wrap and keep the arrow from being
+     squished against the edge. Give each row a minimum touch height. */
+  #projects-section {
+    padding: 20vw 6vw 14vw 6vw;
+  }
+
+  .pj-link {
+    gap: 3vw;
+    padding: 5vw 0;
+    min-height: 56px;
+    align-items: center;
+  }
+
+  .pj-meta {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .pj-name {
+    word-break: break-word;
+    hyphens: auto;
+  }
+
+  .pj-num {
+    min-width: 10vw;
+    flex-shrink: 0;
+  }
+
+  .pj-arrow {
+    width: 9vw;
+    height: 9vw;
+    flex-shrink: 0;
+  }
+
+  /* About inline services — compact padding on phones */
+  .about-inline-services__item {
+    padding: 5vw 0 !important;
+  }
+
+  .about-inline-services__item h4 {
+    font-size: 6.2vw;
+  }
+
+  .about-inline-services__item p {
+    font-size: 3.4vw;
+    margin-top: 2.5vw;
+  }
+
+  /* Contact spacing — give the stacked layout room to breathe */
+  #contact-section {
+    padding: 20vw 6vw 14vw 6vw;
+    min-height: auto;
+    gap: 4vw;
+  }
+
+  #ct-actions {
+    margin-top: 5vw;
+    gap: 3vw;
+  }
+
+  #ct-btn,
+  #ct-btn-secondary {
+    letter-spacing: 0.18em;
+    min-height: 54px;
+  }
+
+  /* Footer — tighten column gap so 2 columns fit per row on narrow
+     phones without becoming a single column that creates huge blank
+     vertical space */
+  .footer-links {
+    gap: 8vw 6vw;
+  }
+
+  .f-col h3 {
+    font-size: 3.6vw;
+  }
+
+  .f-col a {
+    font-size: 4.2vw;
+    word-break: break-word;
+  }
+
+  /* Horizontal scroll pin section — height shrinks on tiny viewports so
+     there isn't a huge empty-looking pinned area while the headline
+     horizontally pans across. */
+  .Horizontal .hs-sticky {
+    height: 70vh;
+    min-height: 360px;
+  }
+
+  .Horizontal .heading-xl {
+    font-size: clamp(2rem, 15vw, 4.5rem);
+  }
+}
+
+/* ── VERY SMALL PHONES (≤ 360px) ──
+   Extra safety net for iPhone SE-class widths so nothing overflows. */
+@media (max-width: 360px) {
+  #hero-heading {
+    font-size: clamp(1.75rem, 11.5vw, 4.5rem);
+  }
+
+  #ct-headline {
+    font-size: clamp(2.6rem, 24vw, 5.5rem);
+  }
+
+  .pj-title {
+    font-size: 12vw;
+  }
+
+  .pj-name {
+    font-size: 8vw;
+  }
+
+  .f-logo {
+    font-size: 18vw;
+  }
+}
+
+/* ── TOUCH DEVICE HOVER CLEANUP ──
+   Some of the nav/CTA components use :hover for reveal effects. On touch
+   devices those hovers either "stick" after tap or never fire at all, so
+   we disable them here to keep tap feedback consistent. */
+@media (hover: none) and (pointer: coarse) {
+  .pj-link:hover {
+    padding-left: 0;
+    color: var(--color-text);
+  }
+
+  .pj-link:hover .pj-num,
+  .pj-link:hover .pj-role,
+  .pj-link:hover .pj-kind,
+  .pj-link:hover .pj-note {
+    opacity: 0.6;
+    color: var(--color-text);
+  }
+
+  .pj-link:hover .pj-arrow {
+    transform: none;
+  }
+}
+
+
+/* ── REDUCED MOTION ──
+   This site leans heavily on motion (GSAP scroll triggers, Lenis smooth
+   scroll, Framer Motion, a WebGL hero). Users who ask the OS for less motion
+   get near-instant transitions instead, while content stays fully visible —
+   animations here only ever move or fade elements that are already in the
+   DOM, so collapsing their duration never hides anything. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Parallax layers and the decorative hero strokes rely on transform offsets
+     that read as drifting motion; pin them in place. */
+  .hero-layer,
+  #hero-stroke-1,
+  #hero-stroke-2 {
+    transform: none !important;
+  }
+
+  /* Split characters are revealed by GSAP, which is gated off under reduced
+     motion — pin them at their resting state so the text is simply present. */
+  .split-char {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* ── FOCUS VISIBILITY ──
+   Keyboard users need to see where they are. `:focus-visible` (rather than
+   `:focus`) keeps the ring off mouse clicks while still showing it for tab
+   navigation. The accent token is used so the ring reads correctly in both
+   light and dark themes. */
+a:focus-visible,
+button:focus-visible,
+[role="button"]:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* The project/experience rows are large anchors — an inset ring reads better
+   than one hugging the full row bounds. */
+.pj-link:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: -3px;
+}

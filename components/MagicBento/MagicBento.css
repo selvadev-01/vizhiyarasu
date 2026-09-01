@@ -1,0 +1,319 @@
+/* MagicBento — vendored from React Bits and retokenized for this site.
+   See the header comment in MagicBento.jsx for the full list of changes.
+
+   Upstream declared its variables on :root, which leaked a purple palette and
+   `color-scheme: light dark` into the whole document. That last one is
+   actively harmful here: it makes UA chrome follow prefers-color-scheme,
+   which this site deliberately does not use (it themes via a data-theme
+   attribute, dark by default — see app/layout.js). The block is gone; the
+   variables are scoped to .bento-section below and sourced from the
+   --bento-* tokens in app/globals.css.
+
+   Class names are all bento- prefixed. Upstream used bare .card, .particle
+   and .global-spotlight, which are far too generic to drop into a project
+   with a 1700-line global stylesheet. */
+
+.bento-section {
+  /* Written per-card by JS (see updateCardGlowProperties); declared here so
+     the border glow has sane values before the first pointer move. */
+  --glow-x: 50%;
+  --glow-y: 50%;
+  --glow-intensity: 0;
+  --glow-radius: 200px;
+
+  position: relative;
+  width: 100%;
+}
+
+/* ── GRID ──
+   Mobile: one column. >=600px: the first card runs full width as a lead and
+   the rest pair up. >=1024px: a 12-track editorial bento where the first
+   card is a two-row feature.
+
+   The desktop shape for FIVE cards:
+
+     ┌─────────────────────┬───────────┐
+     │                     │     2     │
+     │          1          ├───────────┤
+     │      (feature)      │     3     │
+     ├─────────────────────┼───────────┤
+     │          4          │     5     │
+     └─────────────────────┴───────────┘
+
+   12 tracks, split 7+5 on EVERY row. An earlier revision mirrored the split
+   on row 2 (5+7); measured on the live page that put the row-2 seam 202px
+   left of the row-1 seam, which reads as a misalignment rather than as
+   intent. One continuous vertical seam is what makes the feature card look
+   deliberately sized instead of arbitrary.
+
+   Spans past card 5 are deliberately left unset — an added achievement
+   flows as a 4-track card into a new row rather than breaking the shape. */
+.bento-card-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+@media (min-width: 600px) {
+  .bento-card-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* The lead card gets the full width at this size too, so the hierarchy
+     established on desktop survives the step down instead of flattening. */
+  .bento-card-grid .bento-card:nth-child(1) {
+    grid-column: span 2;
+  }
+}
+
+@media (min-width: 1024px) {
+  .bento-card-grid {
+    grid-template-columns: repeat(12, 1fr);
+    /* Measured: at 150px the half-height cards resolved to ~165px, leaving
+       ~100px of content box after padding — too tight for a label, title and
+       ~20-word description without it feeling crushed. 185px gives the copy
+       room; the feature card is two of these plus a gap. */
+    grid-auto-rows: minmax(185px, auto);
+    gap: 1rem;
+  }
+
+  .bento-card-grid .bento-card:nth-child(1) {
+    grid-column: span 7;
+    grid-row: span 2;
+  }
+
+  .bento-card-grid .bento-card:nth-child(2),
+  .bento-card-grid .bento-card:nth-child(3) {
+    grid-column: span 5;
+  }
+
+  .bento-card-grid .bento-card:nth-child(4) {
+    grid-column: span 7;
+  }
+
+  .bento-card-grid .bento-card:nth-child(5) {
+    grid-column: span 5;
+  }
+
+  /* Anything beyond the designed five falls back to a neutral third-width
+     card rather than inheriting `span 2` from the 600px rule (which would
+     be 2 of 12 tracks here — a sliver). */
+  .bento-card-grid .bento-card:nth-child(n + 6) {
+    grid-column: span 4;
+  }
+}
+
+/* ── CARD ── */
+.bento-card {
+  display: flex;
+  position: relative;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1.5rem;
+  min-height: 190px;
+  width: 100%;
+  /* Overridden on desktop: the grid's 150px auto-rows are what size the
+     half-height cards in the stacked column, and a 190px floor here would
+     force them taller than the feature card they sit beside. */
+  padding: 1.5rem;
+  border: 1px solid var(--bento-card-border);
+  border-radius: 20px;
+  background: var(--bento-card-bg);
+  font-weight: 300;
+  overflow: hidden;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+
+  /* Upstream set these on the wrapper element inline. Keeping them in CSS
+     means the non-animated fallback card (touch / reduced motion) gets the
+     same containment without the JS ever running. */
+  --glow-x: 50%;
+  --glow-y: 50%;
+  --glow-intensity: 0;
+  --glow-radius: 200px;
+}
+
+.bento-card:hover {
+  box-shadow: 0 8px 25px rgb(0 0 0 / 0.12);
+}
+
+.bento-card__header {
+  display: flex;
+  position: relative;
+  z-index: 2;
+  gap: 0.75rem;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.bento-card__label {
+  color: var(--color-text-subtle);
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+/* The index sits opposite the label so every card has both corners of its
+   header occupied. With cards now at four different sizes, this is what
+   tells a reader the grid is one ordered set rather than five loose tiles. */
+.bento-card__index {
+  color: var(--color-text-subtle);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  opacity: 0.65;
+}
+
+/* ── FEATURE CARD ──
+   Only the extra height earned by `grid-row: span 2` is spent here, and only
+   where that span applies. Below 1024px the feature card is full-width but
+   normal height, so scaling the type there would just cost vertical space. */
+@media (min-width: 1024px) {
+  .bento-card-grid .bento-card {
+    min-height: 0;
+  }
+
+  .bento-card-grid .bento-card:nth-child(1) {
+    padding: 2rem;
+  }
+
+  .bento-card-grid .bento-card:nth-child(1) .bento-card__title {
+    font-size: 1.625rem;
+    line-height: 1.2;
+  }
+
+  .bento-card-grid .bento-card:nth-child(1) .bento-card__description {
+    max-width: 46ch;
+    font-size: 1rem;
+  }
+}
+
+.bento-card__content {
+  display: flex;
+  position: relative;
+  z-index: 2;
+  flex-direction: column;
+}
+
+.bento-card__title {
+  margin: 0 0 0.5rem;
+  color: var(--color-text);
+  font-weight: 400;
+  font-size: 1.125rem;
+  line-height: 1.3;
+}
+
+.bento-card__description {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+/* Opt-in only — the component defaults textAutoHide to false. Retained so
+   the prop still works if this component is reused somewhere with shorter
+   copy and taller cards. */
+.bento-card--text-autohide .bento-card__title {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bento-card--text-autohide .bento-card__description {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── BORDER GLOW ──
+   A masked ring that tracks the cursor via --glow-x/--glow-y. This is a
+   position readout rather than an animation, which is why it is kept under
+   reduced motion — it is the component's main visual identity and it never
+   moves on its own. */
+.bento-card--border-glow::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 6px;
+  border-radius: inherit;
+  background: radial-gradient(
+    var(--glow-radius) circle at var(--glow-x) var(--glow-y),
+    rgb(var(--bento-glow) / calc(var(--glow-intensity) * 0.8)) 0%,
+    rgb(var(--bento-glow) / calc(var(--glow-intensity) * 0.4)) 30%,
+    transparent 60%
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.bento-card--border-glow:hover {
+  border-color: rgb(var(--bento-glow) / 0.4);
+  box-shadow:
+    0 4px 20px rgb(0 0 0 / 0.16),
+    0 0 30px rgb(var(--bento-glow) / var(--bento-glow-strength));
+}
+
+/* ── PARTICLES ──
+   Nodes are appended imperatively by the JS; this only supplies containment
+   and the soft halo behind each one. */
+.bento-particle-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.bento-particle::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  background: rgb(var(--bento-glow) / 0.2);
+  z-index: -1;
+}
+
+/* ── SPOTLIGHT ──
+   `screen` blending over the light theme's near-white #F9F8FF is effectively
+   a no-op, which would read as "the spotlight is broken in light mode". So
+   the blend mode is applied only on the dark ground it actually works on;
+   in light mode the gradient composites normally. */
+.bento-global-spotlight {
+  mix-blend-mode: normal;
+  will-change: transform, opacity;
+  pointer-events: none;
+  z-index: 200 !important;
+}
+
+[data-theme="dark"] .bento-global-spotlight {
+  mix-blend-mode: screen;
+}
+
+/* ── REDUCED MOTION ──
+   Belt and braces. The JS already refuses to attach the pointer handlers or
+   spawn particles when prefers-reduced-motion is set (see
+   useShouldDisableAnimations), so this only guards against a stale node
+   surviving a mid-session settings change. */
+@media (prefers-reduced-motion: reduce) {
+  .bento-card,
+  .bento-card::after {
+    transition: none !important;
+    transform: none !important;
+  }
+
+  .bento-particle,
+  .bento-global-spotlight {
+    display: none !important;
+  }
+}

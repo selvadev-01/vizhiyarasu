@@ -1,0 +1,317 @@
+/* ── ACHIEVEMENTS LEDGER ──
+   Own `ach-` prefix, same reasoning as the `xp-` timeline next door: these are
+   claims, not a list of linkable named things, so they don't reuse the shared
+   pj- row pattern.
+
+   This replaces a MagicBento card grid. Cards gave each achievement a boxed
+   surface, which set them all at equal visual weight and put five hard borders
+   in a row directly beneath the Experience timeline's open, ruled layout. A
+   ledger reads as one continuous block, matches the typographic language of
+   its neighbour, and lets the oversized index carry the ordering that the
+   card grid needed a corner numeral to express.
+
+   Colours are theme tokens only, so light and dark both work with no second
+   palette. */
+
+/* ── Two-column split ──
+   Left: the achievements ledger. Right: the tools orbit, previously its own
+   full-width band below this one. The ledger is the taller column by a long
+   way, so the right column sticks rather than stranding the orbit at the top.
+
+   The ratio is deliberately unequal: the ledger is prose that needs measure,
+   the orbit is a fixed-aspect illustration that only needs enough width to
+   stay legible, so the copy gets the larger share. */
+.ach-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+  gap: 0 4vw;
+  align-items: start;
+  margin-top: 2vw;
+}
+
+.ach-tools {
+  /* Sticky offset clears the fixed navbar; the ledger scrolls past beside it. */
+  position: sticky;
+  top: 12vh;
+}
+
+.ach-tools__inner {
+  display: flex;
+  flex-direction: column;
+  /* The orbit's own mx-auto centres it; this aligns the copy under it. */
+  align-items: stretch;
+  gap: 2vw;
+  /* Optical alignment: the ledger's first row starts below its top rule, so
+     the orbit drops to meet the lead achievement rather than the rule. */
+  padding-top: 1.5vw;
+}
+
+/* Overrides the standalone section's max-widths — inside a column the orbit
+   fills the track it is given instead of a fixed breakpoint ladder. */
+.ach-tools__orbit {
+  width: 100%;
+  max-width: 30rem;
+}
+
+.ach-tools__copy {
+  /* Centred under the orbit rather than left-aligned. The orbit above it is a
+     radially symmetric illustration centred in this column, so copy flushed to
+     the column's left edge reads as detached from it — centring locks the two
+     onto one axis. The ledger's own left-aligned copy is a separate column
+     with its own edge, so there is no alignment to share across the gap. */
+  text-align: center;
+  max-width: 42ch;
+  /* Centres the box itself, not just the lines inside it — max-width would
+     otherwise leave it pinned left when the column is wider than 42ch. */
+  margin-inline: auto;
+}
+
+.ach-ledger {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-inter), "Inter", sans-serif;
+  color: var(--color-text);
+  /* Establishes the containing block for the rows' accent edge. */
+  position: relative;
+}
+
+/* ── Row ── */
+
+.ach-item {
+  position: relative;
+  display: grid;
+  /* Index rail, then the copy. The rail is sized to hold two tabular digits
+     at the largest clamp step without the title column shifting between rows. */
+  grid-template-columns: 5.5vw 1fr;
+  gap: 0 2vw;
+  align-items: start;
+  padding: 2.2vw 0 2.2vw 1.6vw;
+  border-bottom: 1.5px solid var(--color-border);
+}
+
+.ach-item:first-child {
+  /* The section rule above the ledger already closes the top edge. */
+  border-top: 1.5px solid var(--color-border);
+}
+
+/* ── Accent edge ──
+   The resting/approach behaviour the bento cards used to express with a glow
+   ring, rebuilt for a ledger: a left edge that is ALWAYS visible, and that
+   intensifies and extends on hover rather than appearing from nothing. A
+   border that only exists on hover reads as the accent being absent at rest;
+   this keeps the accent present and makes the interaction a change of degree. */
+.ach-item::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 2px;
+  background: linear-gradient(
+    180deg,
+    rgb(var(--ach-accent) / var(--ach-edge-strong)) 0%,
+    rgb(var(--ach-accent) / var(--ach-edge-soft)) 100%
+  );
+  /* scaleY from the top so hover reads as the edge growing down the row. */
+  transform: scaleY(1);
+  transform-origin: top center;
+  transition:
+    width 240ms ease-out,
+    opacity 240ms ease-out;
+  opacity: 0.55;
+}
+
+.ach-item:hover::before,
+.ach-item:focus-within::before {
+  width: 3px;
+  opacity: 1;
+}
+
+/* A wash that fades in from the accent edge across the row. Kept very low
+   alpha — it should register as the row lifting, not as a coloured band. */
+.ach-item::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgb(var(--ach-accent) / var(--ach-wash)) 0%, transparent 42%);
+  opacity: 0;
+  transition: opacity 240ms ease-out;
+}
+
+.ach-item:hover::after,
+.ach-item:focus-within::after {
+  opacity: 1;
+}
+
+/* ── Index ──
+   Oversized and tabular. This is what carries the ordering, so it is a real
+   typographic element rather than the 0.75rem corner numeral the cards used. */
+.ach-index {
+  font-size: clamp(1.5rem, 2.6vw, 2.75rem);
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  /* Subtle at rest so the titles lead; the accent belongs to the edge. */
+  color: var(--color-text-subtle);
+  transition: color 240ms ease-out;
+  /* Optical alignment with the title's cap height rather than its text box. */
+  padding-top: 0.06em;
+}
+
+.ach-item:hover .ach-index,
+.ach-item:focus-within .ach-index {
+  color: rgb(var(--ach-accent) / 0.85);
+}
+
+/* ── Copy ── */
+
+.ach-label {
+  display: block;
+  margin-bottom: 0.5vw;
+  font-size: clamp(0.6875rem, 0.8vw, 0.875rem);
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-text-subtle);
+}
+
+.ach-title {
+  margin: 0 0 0.6vw;
+  font-size: clamp(1.25rem, 1.9vw, 2rem);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  color: var(--color-text);
+}
+
+.ach-desc {
+  margin: 0;
+  font-size: clamp(0.875rem, 1vw, 1.0625rem);
+  font-weight: 400;
+  line-height: 1.6;
+  letter-spacing: -0.01em;
+  /* The muted token directly rather than opacity on --color-text — 0.8 opacity
+     on the foreground measures below the 4.5:1 floor, same note as .xp-note. */
+  color: var(--color-text-muted);
+  max-width: 68ch;
+}
+
+/* ── Lead row ──
+   The first achievement gets larger type, replacing the feature card that
+   carried this emphasis in the grid. No extra chrome — the hierarchy is
+   entirely typographic, which is what lets it sit in a plain ledger. */
+.ach-item--lead .ach-title {
+  font-size: clamp(1.5rem, 2.6vw, 2.75rem);
+  letter-spacing: -0.04em;
+}
+
+.ach-item--lead .ach-desc {
+  font-size: clamp(0.9375rem, 1.15vw, 1.1875rem);
+  max-width: 62ch;
+}
+
+/* ── Tablet and below ── */
+
+@media (max-width: 1024px) {
+  .ach-split {
+    /* Below this width the two columns can't both hold their content: the
+       ledger's titles start breaking mid-phrase and the orbit shrinks past
+       the point its icons read. Stack, and drop the sticky with it — a
+       sticky element in a single-column flow just pins over the content
+       that follows it. */
+    grid-template-columns: 1fr;
+    gap: 8vw 0;
+    margin-top: 5vw;
+  }
+
+  .ach-tools {
+    position: static;
+  }
+
+  .ach-tools__inner {
+    padding-top: 0;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .ach-tools__orbit {
+    max-width: 26rem;
+  }
+
+  .ach-tools__copy {
+    /* Only the measure changes when stacked — the centring is inherited from
+       the base rule, which applies at every width. */
+    max-width: 46ch;
+  }
+
+  .ach-item {
+    /* Fixed rail: a vw column is wider than two digits need at this size and
+       eats the copy's measure. Same fix as .xp-group's spine. */
+    grid-template-columns: 44px 1fr;
+    gap: 0 16px;
+    padding: 24px 0 24px 14px;
+  }
+
+  .ach-label {
+    margin-bottom: 6px;
+  }
+
+  .ach-title {
+    margin-bottom: 8px;
+  }
+}
+
+/* ── Phone ── */
+
+@media (max-width: 560px) {
+  .ach-split {
+    gap: 14vw 0;
+  }
+
+  .ach-tools__orbit {
+    max-width: 18rem;
+  }
+
+  .ach-item {
+    /* The index moves above the copy rather than shrinking to a sliver rail.
+       Below ~560px a two-column split leaves the titles too narrow to hold a
+       line without breaking mid-phrase. */
+    grid-template-columns: 1fr;
+    gap: 10px 0;
+    padding: 20px 0 20px 12px;
+  }
+
+  .ach-index {
+    font-size: 1.125rem;
+    /* Tracked and muted here — at this size it reads as a caption above the
+       row rather than as the display numeral it is on desktop. */
+    letter-spacing: 0.12em;
+    padding-top: 0;
+  }
+
+  .ach-desc {
+    max-width: none;
+  }
+}
+
+/* Hover is a pointer affordance. On touch there is no cursor to approach with,
+   so the edge is drawn at full strength permanently instead of sitting at its
+   dimmer resting state forever. */
+@media (hover: none) {
+  .ach-item::before {
+    opacity: 1;
+  }
+}
+
+/* Companion to the JS gate in Achievements.jsx, which handles the GSAP tween.
+   This covers only the CSS transitions declared above. */
+@media (prefers-reduced-motion: reduce) {
+  .ach-item::before,
+  .ach-item::after,
+  .ach-index {
+    transition-duration: 0.01ms;
+  }
+}

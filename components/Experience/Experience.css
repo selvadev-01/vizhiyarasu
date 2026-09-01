@@ -1,0 +1,274 @@
+/* ── EXPERIENCE TIMELINE ──
+   Own `xp-` prefix rather than the shared `pj-` row pattern: work history is
+   date-ranged, non-interactive content, where the pj- rows are a list of
+   linkable named things. Colours come from the theme tokens only, so both
+   light and dark work without a second palette. */
+
+.xp-timeline {
+  list-style: none;
+  margin: 0;
+  /* .pj-head already supplies margin-bottom; this only needs to clear it,
+     matching how .pj-bento sits under its own heading. */
+  margin-top: 2vw;
+  padding: 0;
+  font-family: var(--font-inter), 'Inter', sans-serif;
+  color: var(--color-text);
+}
+
+.xp-group {
+  display: grid;
+  grid-template-columns: 2.5vw 1fr;
+  gap: 0 2vw;
+  padding-bottom: 3.5vw;
+}
+
+.xp-group:last-child {
+  padding-bottom: 0;
+}
+
+/* ── Spine ── */
+
+.xp-spine {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  /* Stretches to the full row height so the connecting line spans the group. */
+  align-self: stretch;
+}
+
+.xp-node {
+  /* Nudged down to sit on the company name's optical centre rather than the
+     very top of the text box. */
+  margin-top: 0.55em;
+  width: 11px;
+  height: 11px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  border: 1.5px solid var(--color-border);
+  background-color: var(--color-bg);
+  /* Above the line so the line appears to terminate at the dot. */
+  position: relative;
+  z-index: 1;
+  transition: border-color 220ms ease-out, background-color 220ms ease-out;
+}
+
+.xp-node--current {
+  border-color: var(--color-accent);
+  background-color: var(--color-accent);
+  box-shadow: 0 0 0 4px var(--color-accent-soft);
+}
+
+.xp-spine-line {
+  position: absolute;
+  top: 0.55em;
+  bottom: 0;
+  left: 50%;
+  width: 1.5px;
+  transform: translateX(-50%);
+  /* 1.5px border to match every other divider in #projects-section. */
+  background-color: var(--color-border);
+}
+
+.xp-group:last-child .xp-spine-line {
+  /* Nothing follows, so a trailing line would point at empty space. */
+  display: none;
+}
+
+/* ── Company ── */
+
+.xp-company-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 2vw;
+  flex-wrap: wrap;
+  padding-bottom: 0.9vw;
+  border-bottom: 1.5px solid var(--color-border);
+}
+
+.xp-company {
+  margin: 0;
+  /* clamp() rather than bare vw: a 2.4vw value alone drops under the legible
+     floor on narrow desktops, the same problem already fixed for
+     .about-inline-services__* in globals.css. */
+  font-size: clamp(1.5rem, 2.4vw, 2.5rem);
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+  color: var(--color-text);
+}
+
+.xp-span {
+  font-size: clamp(0.75rem, 0.85vw, 0.9375rem);
+  letter-spacing: 0.2em;
+  font-weight: 500;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  /* Keeps date columns from jittering between rows. */
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Roles ── */
+
+.xp-roles {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.xp-role {
+  padding: 1.6vw 0;
+  border-bottom: 1.5px solid var(--color-border);
+}
+
+.xp-role:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.xp-role-head {
+  display: flex;
+  align-items: baseline;
+  gap: 1.2vw;
+  flex-wrap: wrap;
+}
+
+.xp-role-title {
+  margin: 0;
+  font-size: clamp(1.125rem, 1.5vw, 1.625rem);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: var(--color-text);
+}
+
+/* Clips the per-character spans so the `yPercent` reveal reads as text rising
+   out of its own line instead of drifting across the row above. Mirrors the
+   .pj-title/.pj-name rule in globals.css; the padding/margin pair restores the
+   room the clip would otherwise take from descenders. */
+.xp-company .split-word,
+.xp-role-title .split-word {
+  display: inline-block;
+  overflow: hidden;
+  padding-bottom: 0.12em;
+  margin-bottom: -0.12em;
+  vertical-align: bottom;
+}
+
+.xp-dates {
+  font-size: clamp(0.75rem, 0.85vw, 0.9375rem);
+  letter-spacing: 0.16em;
+  font-weight: 500;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.xp-badge {
+  font-size: clamp(0.6875rem, 0.72vw, 0.8125rem);
+  letter-spacing: 0.14em;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  background-color: var(--color-accent-soft);
+  border-radius: 999px;
+  padding: 0.25em 0.7em;
+  white-space: nowrap;
+}
+
+.xp-note {
+  margin: 0.7vw 0 0;
+  font-size: clamp(0.875rem, 1vw, 1.0625rem);
+  font-weight: 400;
+  line-height: 1.6;
+  letter-spacing: -0.01em;
+  /* The muted token directly, not opacity on --color-text: 0.8 opacity on the
+     foreground measured below the 4.5:1 floor elsewhere in this stylesheet's
+     sibling rules. */
+  color: var(--color-text-muted);
+  max-width: 62ch;
+}
+
+/* ── Tablet and below ── */
+
+@media (max-width: 1024px) {
+  .xp-timeline {
+    margin-top: 5vw;
+  }
+
+  .xp-group {
+    /* The spine collapses to a fixed narrow rail: a vw-sized column would be
+       wider than the dot needs and eat the body's measure. */
+    grid-template-columns: 18px 1fr;
+    gap: 0 16px;
+    padding-bottom: 40px;
+  }
+
+  .xp-node {
+    margin-top: 0.5em;
+    width: 10px;
+    height: 10px;
+  }
+
+  .xp-spine-line {
+    top: 0.5em;
+  }
+
+  .xp-company-head {
+    /* Stacked so the date keeps a full line instead of being squeezed against
+       a wrapping company name. */
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    padding-bottom: 12px;
+  }
+
+  .xp-role {
+    padding: 20px 0;
+  }
+
+  .xp-role-head {
+    gap: 10px;
+  }
+
+  .xp-note {
+    margin-top: 10px;
+    max-width: 60ch;
+  }
+}
+
+/* ── Phone ── */
+
+@media (max-width: 480px) {
+  .xp-group {
+    grid-template-columns: 16px 1fr;
+    gap: 0 12px;
+    padding-bottom: 32px;
+  }
+
+  .xp-role {
+    padding: 16px 0;
+  }
+
+  .xp-role-head {
+    /* The date is the thing that used to vanish entirely below 1024px. It gets
+       its own line here rather than being dropped. */
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .xp-note {
+    margin-top: 8px;
+  }
+}
+
+/* Companion to the JS gate in Experience.jsx, which handles the GSAP tweens.
+   This only covers the CSS transitions declared above. */
+@media (prefers-reduced-motion: reduce) {
+  .xp-node {
+    transition-duration: 0.01ms;
+  }
+}
