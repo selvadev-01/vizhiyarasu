@@ -1,12 +1,11 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import React, { useCallback, useRef } from "react";
 
 import { EXPERIENCE } from "../../data/profile";
 import SplitText from "../utils/SplitText";
 import usePrefersReducedMotion from "../utils/usePrefersReducedMotion";
+import useScrollReveal from "../utils/useScrollReveal";
 import "./Experience.css";
 
 /**
@@ -49,79 +48,65 @@ const Experience = () => {
   const reducedMotion = usePrefersReducedMotion();
   const groups = groupByCompany(EXPERIENCE);
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    // Skipping the context entirely leaves the markup at its final state —
-    // no tween means nothing to reset.
-    if (reducedMotion) return;
-
-    gsap.registerPlugin(ScrollTrigger);
-
-    const ctx = gsap.context(() => {
-      // Per-element triggers, not one section-level trigger: the timeline is
-      // taller than the viewport, so a single trigger on sectionRef fired every
-      // group's tween at once and the lower entries finished off-screen.
-      const reveal = (el, vars) =>
-        gsap.from(el, {
-          ease: "power3.out",
-          ...vars,
-          scrollTrigger: {
-            trigger: el,
-            start: "top 88%",
-            // Reverses on scroll-up for a genuine in/out transition.
-            toggleActions: "play reverse play reverse",
-          },
-        });
-
-      sectionRef.current.querySelectorAll(".xp-group").forEach((group) => {
-        reveal(group, { opacity: 0, y: 40, duration: 0.8 });
-
-        // scaleY, not height: animating height would reflow the grid every
-        // frame. Scoped per group so each spine draws as its entry arrives.
-        reveal(group.querySelector(".xp-spine-line"), {
-          scaleY: 0,
-          transformOrigin: "top center",
-          duration: 1.1,
-          ease: "power2.out",
-        });
-
-        reveal(group.querySelectorAll(".xp-company .split-char"), {
-          opacity: 0,
-          yPercent: 110,
-          duration: 0.7,
-          stagger: 0.02,
-        });
-
-        // Role titles stagger after the company name so the entry reads
-        // top-down rather than everything arriving on the same beat.
-        const roleChars = group.querySelectorAll(".xp-role-title .split-char");
-        if (roleChars.length) {
-          reveal(roleChars, {
-            opacity: 0,
-            yPercent: 110,
-            duration: 0.5,
-            stagger: 0.012,
-            delay: 0.1,
-          });
-        }
-      });
-
-      const head = sectionRef.current.querySelector(".pj-head");
-      reveal(head.querySelector(".pj-label"), {
+  // Per-element triggers, not one section-level trigger: the timeline is taller
+  // than the viewport, so a single trigger on sectionRef fired every group's
+  // tween at once and the lower entries finished off-screen.
+  const build = useCallback((reveal, tier) => {
+    sectionRef.current.querySelectorAll(".xp-group").forEach((group) => {
+      reveal(group, {
         opacity: 0,
-        y: 20,
-        duration: 0.6,
+        y: tier.revealDistance,
+        x: tier.slideX,
+        duration: tier.revealDuration,
       });
-      reveal(head.querySelectorAll(".pj-title .split-char"), {
+
+      // scaleY, not height: animating height would reflow the grid every
+      // frame. Scoped per group so each spine draws as its entry arrives.
+      // This is the section's signature move, so it survives on every tier;
+      // only its duration scales down.
+      reveal(group.querySelector(".xp-spine-line"), {
+        scaleY: 0,
+        transformOrigin: "top center",
+        duration: tier.revealDuration * 1.3,
+        ease: "power2.out",
+      });
+
+      reveal(group.querySelectorAll(".xp-company .split-char"), {
         opacity: 0,
         yPercent: 110,
-        duration: 0.8,
-        stagger: 0.02,
+        duration: tier.revealDuration * 0.8,
+        stagger: tier.charStagger * 1.6,
       });
-    }, sectionRef.current);
 
-    return () => ctx.revert();
-  }, [reducedMotion]);
+      // Role titles stagger after the company name so the entry reads
+      // top-down rather than everything arriving on the same beat.
+      const roleChars = group.querySelectorAll(".xp-role-title .split-char");
+      if (roleChars.length) {
+        reveal(roleChars, {
+          opacity: 0,
+          yPercent: 110,
+          duration: tier.revealDuration * 0.6,
+          stagger: tier.charStagger,
+          delay: 0.1,
+        });
+      }
+    });
+
+    const head = sectionRef.current.querySelector(".pj-head");
+    reveal(head.querySelector(".pj-label"), {
+      opacity: 0,
+      y: 20,
+      duration: tier.revealDuration * 0.7,
+    });
+    reveal(head.querySelectorAll(".pj-title .split-char"), {
+      opacity: 0,
+      yPercent: 110,
+      duration: tier.revealDuration * 0.85,
+      stagger: tier.charStagger * 1.6,
+    });
+  }, []);
+
+  useScrollReveal({ scopeRef: sectionRef, reducedMotion, build });
 
   return (
     <div ref={sectionRef}>

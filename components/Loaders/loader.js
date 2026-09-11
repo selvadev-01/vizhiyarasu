@@ -92,6 +92,14 @@ export const fetchData = async (
 ) => {
   const response = await fetch(path);
 
+  // A missing asset resolves as the framework's 404 HTML page rather than
+  // rejecting. Without this check that markup reaches onBufferLoad, which reads
+  // its first four bytes as a length header and attempts a multi-gigabyte
+  // allocation. Fail loudly instead, so callers can fall back.
+  if (!response.ok) {
+    throw new Error(`fetchData: ${path} returned ${response.status}`);
+  }
+
   const reader = response.body.getReader();
   const contentLength = +response.headers.get("Content-Length");
 

@@ -33,6 +33,13 @@ const Skiggle = () => {
     <svg
       className="squigggle absolute top-[-10%] left-1/2 -translate-x-1/2 w-[120vw] h-full z-0"
       fill="none"
+      // The path is drawn in raw user-space coordinates spanning roughly
+      // x:-215..1613, y:-5..1315. Without a viewBox the SVG renders at 1:1 and
+      // a phone only ever sees the top-left corner of the drawing. The viewBox
+      // maps that full extent onto the element box so the ribbon scales with
+      // the viewport instead of being cropped by it.
+      viewBox="-215 -5 1828 1320"
+      preserveAspectRatio="xMidYMid meet"
       xmlns="http://www.w3.org/2000/svg"
     >
       <motion.path

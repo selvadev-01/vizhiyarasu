@@ -29,9 +29,17 @@
   --color-bg-alt: #ffffff;
   --color-text: #060607;
   --color-text-muted: #555555;
-  --color-text-subtle: #888888;
+  /* #888888 measured 3.36:1 on --color-bg, below the WCAG AA 4.5:1 floor for
+     body text. This is the darkest value that clears AA on both the base
+     (#F9F8FF, 4.64:1) and card (#ffffff, 4.90:1) grounds while still reading
+     as a de-emphasised tone against --color-text-muted. */
+  --color-text-subtle: #70707A;
   --color-accent: #0016EC;
   --color-accent-soft: #D9E6FF;
+  /* Accent text sitting ON --color-accent-soft (badges, pills). The light
+     pairing already clears AA at 7.19:1, so this is just the accent itself;
+     the dark theme overrides it. */
+  --color-accent-on-soft: #0016EC;
   /* Orbit gradient shades (components/ui/integrations-section.jsx). Stored as
      bare "R G B" channels rather than hex so Tailwind's slash-opacity syntax
      (`from-orbit-glow/30`) can compose them.
@@ -102,9 +110,16 @@
   --color-bg-alt: #131318;
   --color-text: #F9F8FF;
   --color-text-muted: #A8A8AE;
-  --color-text-subtle: #6E6E76;
+  /* #6E6E76 measured 3.91:1 on --color-bg, below the AA 4.5:1 floor. Lifted to
+     the lightest value that clears AA on both the base (#0A0A0C, 4.92:1) and
+     card (#131318, 4.61:1) grounds without closing the gap to --color-text-muted. */
+  --color-text-subtle: #7E7E88;
   --color-accent: #4A83FF;
   --color-accent-soft: #1B2540;
+  /* Lifted from #4A83FF (4.32:1 on the soft fill, under AA) to 5.68:1. Used
+     only for accent text on the soft accent ground, so --color-accent stays
+     the brand blue everywhere else. */
+  --color-accent-on-soft: #6E9CFF;
   /* Dark-mode orbit shades — the reference look: a soft charcoal arc lifting
      out of a near-black ground. Brighter channels than the light theme
      because a dark ground swallows a low-opacity wash; the same alpha that
@@ -215,7 +230,9 @@ html {
 }
 
 .nav_btn_sm{
-  @apply rounded-full w-10 h-10 mx-2;
+  /* 44px, not 40px: this is the primary menu control on every phone, so it is
+     the one button that must clear the minimum touch target outright. */
+  @apply rounded-full w-11 h-11 mx-2;
   background-color: var(--color-btn-sm-bg);
   color: var(--color-btn-light-text);
 }
@@ -231,7 +248,7 @@ html {
    animate its width on hover without shifting the text.
    ───────────────────────────────────────────────────────────────────────── */
 .nav_link{
-  @apply relative font-mono text-[0.78rem] font-medium uppercase tracking-[0.18em] transition-colors duration-200;
+  @apply relative font-mono text-[0.72rem] lg:text-[0.78rem] font-medium uppercase tracking-[0.1em] lg:tracking-[0.18em] whitespace-nowrap transition-colors duration-200;
   color: var(--color-text-muted);
 }
 .nav_link:hover{
@@ -322,7 +339,10 @@ html {
 /* Bordered CTA ("HIRE ME") — square-ish outline button in the same tracked
    mono caps, inverting to solid on hover. */
 .nav_cta{
-  @apply font-mono text-[0.78rem] font-medium uppercase tracking-[0.18em] px-6 h-10 flex items-center justify-center transition-colors duration-200;
+  /* `whitespace-nowrap` and `shrink-0`: the fixed h-10 lets a wrapped label
+     overflow the button box rather than grow it, so "HIRE ME" broke onto two
+     clipped lines when the tablet bar ran short of room. */
+  @apply font-mono text-[0.78rem] font-medium uppercase tracking-[0.18em] px-6 h-10 flex items-center justify-center whitespace-nowrap shrink-0 transition-colors duration-200;
   border: 1px solid var(--color-border);
   color: var(--color-text);
 }
@@ -336,7 +356,11 @@ html {
    height so it aligns with the CTA row, but no outline — that keeps
    "HIRE ME" reading as the single primary action. */
 .nav_cta_ghost{
-  @apply font-mono text-[0.78rem] font-medium uppercase tracking-[0.18em] gap-2 px-3 h-10 flex items-center justify-center transition-colors duration-200;
+  /* `hidden lg:flex` on the element cannot win against the `flex` baked in
+     here by @apply, so the tablet-bar hide lives in the rule itself. Below
+     1024px the bar has no room for a secondary action next to the primary CTA;
+     the resume stays reachable from the footer. */
+  @apply font-mono text-[0.78rem] font-medium uppercase tracking-[0.18em] gap-2 px-3 h-10 hidden lg:flex items-center justify-center transition-colors duration-200;
   border: 1px solid transparent;
   color: var(--color-text-muted);
 }
@@ -451,7 +475,12 @@ html {
 
 #hero-section {
   width: 100%;
+  /* `svh` (small viewport height) is the stable measure: `100vh` on mobile
+     Safari/Chrome assumes the URL bar is hidden, so the hero overflowed by the
+     bar's height and shifted as it collapsed. The `vh` line is the fallback for
+     browsers without `svh` support. */
   height: 100vh;
+  height: 100svh;
   position: relative;
   overflow: hidden;
   background-color: var(--color-bg);
@@ -1130,7 +1159,10 @@ html {
 
 #contact-section {
   width: 100%;
-  height: 90vh;
+  /* `min-height` rather than a fixed `height`: the headline, email, and the
+     two action buttons wrap to more lines as the viewport narrows, and a hard
+     90vh clipped them against `overflow: hidden` in the tablet band. */
+  min-height: 90svh;
   background-color: var(--color-bg);
   position: relative;
   overflow: hidden;
@@ -1204,7 +1236,9 @@ html {
   min-height: 48px;
   border-radius: 5vw;
   text-decoration: none;
-  font-size: 0.85vw;
+  /* Floored at 12px: a bare 0.85vw renders ~10.9px at 1280px, under the
+     legibility minimum for a tracked-caps button label. */
+  font-size: clamp(0.75rem, 0.85vw, 1rem);
   font-weight: 600;
   letter-spacing: 0.22em;
   cursor: pointer;
@@ -1309,6 +1343,11 @@ html {
 .f-socials a {
   width: 3vw;
   height: 3vw;
+  /* 3vw is only ~19px at 640px wide, well under the 44px minimum touch target.
+     The floor is unconditional rather than scoped to a breakpoint so the
+     769-1100px band, which is touch-capable on tablets, is covered too. */
+  min-width: 44px;
+  min-height: 44px;
   border-radius: 50%;
   border: 1.5px solid var(--color-border);
   display: flex;
@@ -1380,7 +1419,9 @@ html {
   justify-content: space-between;
   align-items: center;
   padding-top: 2vw;
-  font-size: 0.85vw;
+  /* Floored at 12px: a bare 0.85vw renders ~10.9px at 1280px, under the
+     legibility minimum. Matches the clamp pattern used elsewhere. */
+  font-size: clamp(0.75rem, 0.85vw, 1rem);
   color: var(--color-text-subtle);
 }
 
@@ -1402,6 +1443,46 @@ html {
 
 .footer-bottom-links a:hover {
   color: var(--color-text);
+}
+
+/* ── LARGE DESKTOP CEILING ──
+   The base layer sizes most type in bare `vw`, which has no upper bound: on a
+   1440px monitor `.pj-title` at 5vw is 72px, but on a 2560px ultrawide it is
+   128px and on a 3840px display 192px. Past roughly 1600px the layout stops
+   getting better and just gets bigger, so these convert the worst offenders to
+   a fixed px equivalent of their value at ~1600px. Sections that already use
+   clamp() (Experience, Achievements, #ct-headline, .about-inline-services__*)
+   are capped by their own ceiling and are intentionally absent here. */
+@media (min-width: 1600px) {
+  #hero-heading { font-size: 216px; }
+  #hero-role { font-size: 21.6px; margin-top: 16px; }
+
+  .pj-label { font-size: 15.2px; }
+  .pj-title { font-size: 80px; }
+  .pj-num { font-size: 15.2px; min-width: 64px; }
+  .pj-name { font-size: 64px; }
+  .pj-role { font-size: 16px; }
+  .pj-note { font-size: 16px; }
+  .pj-kind { font-size: 15.2px; }
+  .pj-dot { font-size: 24px; }
+  .pj-arrow { width: 48px; height: 48px; }
+
+  #ct-eyebrow { font-size: 16px; }
+  #ct-email { font-size: 22.4px; }
+  #ct-btn,
+  #ct-btn-secondary {
+    font-size: 13.6px;
+    height: 64px;
+    padding: 0 32px;
+    border-radius: 80px;
+  }
+
+  .f-logo { font-size: 96px; }
+  .f-desc { font-size: 16px; }
+  .f-col h3 { font-size: 16px; }
+  .f-col a { font-size: 15.2px; }
+  .footer-bottom { font-size: 14.4px; }
+  .f-socials a { width: 48px; height: 48px; }
 }
 
 /* ── MOBILE / TABLET ── */
@@ -1620,8 +1701,11 @@ html {
   .f-socials a {
     width: 11vw;
     height: 11vw;
-    min-width: 40px;
-    min-height: 40px;
+    /* 44px, not 40px: this is the smallest-viewport rule, so it overrides the
+       base floor and was quietly lowering the target below the minimum on the
+       devices most likely to be touch-operated. */
+    min-width: 44px;
+    min-height: 44px;
     max-width: 48px;
     max-height: 48px;
   }
@@ -1871,6 +1955,85 @@ html {
   .pj-link:hover .pj-arrow {
     transform: none;
   }
+
+  /* Footer and nav links are sized for a mouse: the text is only ~24px tall,
+     well under the 44px touch minimum. Padding grows the hit area on touch
+     devices without changing type size or the desktop layout's density.
+     `inline-flex` + `align-items` so the padding actually builds a box rather
+     than collapsing on an inline element. */
+  .f-col a,
+  .footer-bottom-links a,
+  #ct-email {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  /* The nav overlay's own links, same reasoning. */
+  .nav_link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  /* The bar's h-10 buttons land at 40px — 4px short. Raising the floor only on
+     touch keeps the desktop bar's proportions exactly as designed. */
+  .nav_cta,
+  .nav_cta_ghost,
+  .nav_icon_btn,
+  .nav_btn_lg {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* ── TACTILE PRESS FEEDBACK ──
+     Every interaction cue on this site was a :hover state, which a touch device
+     never fires. Taps therefore produced no acknowledgement at all between the
+     press and the page responding. These :active rules are the touch
+     equivalent: a short inward press that confirms the tap landed.
+
+     transform + opacity only, so each stays on the compositor. Durations are
+     deliberately brief (~90ms in, longer out) because press feedback has to
+     feel immediate to read as a response rather than an animation. */
+  .nav_cta:active,
+  .nav_cta_ghost:active,
+  .nav_btn_lg:active,
+  #ct-btn:active,
+  #ct-btn-secondary:active {
+    transform: scale(0.97);
+    transition: transform 90ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .nav_icon_btn:active,
+  .nav_btn_sm:active,
+  .f-socials a:active {
+    transform: scale(0.92);
+    transition: transform 90ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* Rows are large targets, so they dim rather than shrink: scaling a
+     full-width row would look like the layout shifting under the finger. */
+  .pj-link:active,
+  .f-col a:active,
+  .footer-bottom-links a:active,
+  #ct-email:active {
+    opacity: 0.6;
+    transition: opacity 90ms ease-out;
+  }
+
+  /* The release is slower than the press so the button settles back rather
+     than snapping, which is what makes it read as physical. */
+  .nav_cta,
+  .nav_cta_ghost,
+  .nav_btn_lg,
+  .nav_icon_btn,
+  .nav_btn_sm,
+  .f-socials a,
+  #ct-btn,
+  #ct-btn-secondary {
+    transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1),
+      background-color 0.4s ease, color 0.4s ease, border-color 0.4s ease;
+  }
 }
 
 
@@ -1903,6 +2066,22 @@ html {
   .split-char {
     opacity: 1 !important;
     transform: none !important;
+  }
+
+  /* The touch press-feedback scales are transforms, so collapsing transition
+     duration above does not remove them; it just makes them instant. Drop the
+     scale entirely and let the opacity dim carry the acknowledgement, which
+     conveys the same "tap landed" signal without movement. */
+  .nav_cta:active,
+  .nav_cta_ghost:active,
+  .nav_btn_lg:active,
+  .nav_icon_btn:active,
+  .nav_btn_sm:active,
+  .f-socials a:active,
+  #ct-btn:active,
+  #ct-btn-secondary:active {
+    transform: none !important;
+    opacity: 0.7;
   }
 }
 

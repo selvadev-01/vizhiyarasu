@@ -17,6 +17,8 @@ const ResumeButton = () => (
     href={RESUME_URL}
     download={`${PROFILE.fullName.replace(/\s+/g, "_")}_Resume.pdf`}
     aria-label={`Download ${PROFILE.fullName}'s resume as PDF`}
+    // The 768-1023px hide lives in `.nav_cta_ghost` itself — a `hidden` utility
+    // here would lose to the `flex` that class bakes in via @apply.
     className="nav_cta_ghost cursor-pointer"
   >
     <svg

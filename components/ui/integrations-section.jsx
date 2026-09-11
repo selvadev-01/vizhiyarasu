@@ -123,7 +123,10 @@ export function ToolsCopy({ className }) {
         assistants that speed up the work.
       </p>
 
-      <Button variant="outline" size="sm" asChild>
+      {/* Default size rather than `sm`: the small variant renders at 36px,
+          under the 44px touch minimum. The touch floor in globals.css lifts it
+          the rest of the way on coarse-pointer devices. */}
+      <Button variant="outline" asChild className="min-h-11">
         <Link href={CONTACT.resumeUrl} target="_blank" rel="noopener noreferrer">
           Download r&eacute;sum&eacute;
         </Link>

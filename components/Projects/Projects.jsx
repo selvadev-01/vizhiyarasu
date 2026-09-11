@@ -1,14 +1,13 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import React, { useCallback, useRef } from "react";
 
 import { EDUCATION, PROJECTS } from "../../data/profile";
 import Achievements from "../Achievements/Achievements";
 import Experience from "../Experience/Experience";
 import SplitText from "../utils/SplitText";
 import usePrefersReducedMotion from "../utils/usePrefersReducedMotion";
+import useScrollReveal from "../utils/useScrollReveal";
 
 const ArrowIcon = () => (
   <svg
@@ -61,73 +60,62 @@ const Projects = () => {
   const sectionRef = useRef(null);
   const reducedMotion = usePrefersReducedMotion();
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    // Skipping the context entirely leaves the markup at its final state —
-    // no tween means nothing to reset.
-    if (reducedMotion) return;
-
-    gsap.registerPlugin(ScrollTrigger);
-
-    const ctx = gsap.context(() => {
-      // Each element gets its own trigger. The previous version pointed every
-      // trigger at sectionRef, which spans Projects + Experience + Education +
-      // Achievements — so the whole section played out the moment its top edge
-      // appeared, and everything below the fold finished animating off-screen.
-      // That's why Education in particular looked like it had no transition.
-      const reveal = (el, vars) =>
-        gsap.from(el, {
-          ease: "power3.out",
-          ...vars,
-          scrollTrigger: {
-            trigger: el,
-            start: "top 88%",
-            // Reverses on the way back up, giving a real in/out transition
-            // rather than the one-shot `once: true` reveal used before.
-            toggleActions: "play reverse play reverse",
-          },
-        });
-
-      sectionRef.current.querySelectorAll(".pj-row").forEach((row) => {
-        reveal(row, { opacity: 0, y: 60, duration: 0.9 });
-
-        // Characters ride on top of the row fade, so the name assembles as the
-        // row arrives instead of animating as one solid block.
-        const chars = row.querySelectorAll(".pj-name .split-char");
-        if (chars.length) {
-          reveal(chars, {
-            opacity: 0,
-            yPercent: 110,
-            duration: 0.6,
-            stagger: 0.012,
-          });
-        }
+  // Each element gets its own trigger. An earlier version pointed every trigger
+  // at sectionRef, which spans Projects + Experience + Education + Achievements,
+  // so the whole section played the moment its top edge appeared and everything
+  // below the fold finished animating off-screen.
+  const build = useCallback((reveal, tier) => {
+    sectionRef.current.querySelectorAll(".pj-row").forEach((row, i) => {
+      reveal(row, {
+        opacity: 0,
+        y: tier.revealDistance,
+        // Horizontal drift is mobile-only (0 on desktop). On a narrow screen
+        // rows stack vertically with little else moving, so a slight sideways
+        // settle gives the entrance a direction instead of a flat fade.
+        x: tier.slideX,
+        scale: tier.scaleFrom,
+        duration: tier.revealDuration,
+        // Indexed delay rather than a `stagger` on one tween: each row owns its
+        // own ScrollTrigger, so they never share a timeline to stagger across.
+        // Capped so a long list does not accumulate a visible wait.
+        delay: Math.min(i, 3) * tier.revealStagger,
       });
 
-      // :scope > .pj-head, not a bare descendant sweep: Experience and
-      // Achievements render inside this section and animate their own headings.
-      // A descendant query claimed those too, so two reversing ScrollTriggers
-      // fought over the same chars and left the losing tween's heading parked
-      // at opacity 0 — Experience's title never showed.
-      sectionRef.current.querySelectorAll(":scope > .pj-head").forEach((head) => {
-        reveal(head.querySelector(".pj-label"), {
-          opacity: 0,
-          y: 20,
-          duration: 0.6,
-        });
-
-        const chars = head.querySelectorAll(".pj-title .split-char");
+      // Characters ride on top of the row fade, so the name assembles as the
+      // row arrives instead of animating as one solid block.
+      const chars = row.querySelectorAll(".pj-name .split-char");
+      if (chars.length) {
         reveal(chars, {
           opacity: 0,
           yPercent: 110,
-          duration: 0.8,
-          stagger: 0.02,
+          duration: tier.revealDuration * 0.7,
+          stagger: tier.charStagger,
         });
-      });
-    }, sectionRef.current);
+      }
+    });
 
-    return () => ctx.revert();
-  }, [reducedMotion]);
+    // :scope > .pj-head, not a bare descendant sweep: Experience and
+    // Achievements render inside this section and animate their own headings.
+    // A descendant query claimed those too, so two ScrollTriggers fought over
+    // the same chars and left the losing tween's heading parked at opacity 0.
+    sectionRef.current.querySelectorAll(":scope > .pj-head").forEach((head) => {
+      reveal(head.querySelector(".pj-label"), {
+        opacity: 0,
+        y: 20,
+        duration: tier.revealDuration * 0.7,
+      });
+
+      const chars = head.querySelectorAll(".pj-title .split-char");
+      reveal(chars, {
+        opacity: 0,
+        yPercent: 110,
+        duration: tier.revealDuration * 0.85,
+        stagger: tier.charStagger * 1.6,
+      });
+    });
+  }, []);
+
+  useScrollReveal({ scopeRef: sectionRef, reducedMotion, build });
 
   return (
     <section id="projects-section" ref={sectionRef}>

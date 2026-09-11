@@ -9,6 +9,7 @@ import MusicButton from "./MusicButton";
 import ResumeButton from "./ResumeButton";
 import Wordmark from "./Wordmark";
 import useActiveSection from "./useActiveSection";
+import { TABLET_MIN } from "../utils/useDeviceTier";
 import { NAV_ITEMS, NAV_TARGETS, scrollToSection } from "./navItems";
 
 import { CONTACT, PROFILE } from "../../data/profile";
@@ -48,6 +49,23 @@ function Navbar() {
     }
   }, [mobileOpen]);
 
+  // The overlay is hidden by `md:hidden`, so once the bar switches to the inline
+  // desktop layout the panel disappears visually but `mobileOpen` would stay
+  // true — leaving body overflow locked and the page silently unscrollable.
+  // Rotating a phone to landscape crosses this boundary, so close on the way up.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const query = window.matchMedia(`(min-width: ${TABLET_MIN}px)`);
+    const close = (event) => {
+      if (event.matches) {
+        setMobileOpen(false);
+        setRotate({ transform: "rotate(0deg)" });
+      }
+    };
+    query.addEventListener("change", close);
+    return () => query.removeEventListener("change", close);
+  }, []);
+
   // Desktop: the links live in the bar itself, so a click only has to
   // scroll — there's no panel to dismiss first.
   const handleDesktopNav = (e, target) => {
@@ -71,7 +89,7 @@ function Navbar() {
           including the footer (z: 100000) and the GradualBlur overlay
           (z: 99999) — so it's always reachable and never clipped by
           another stacking context. */}
-      <div className="fixed top-0 left-0 z-[100001] w-full py-5 lg:hidden px-5">
+      <div className="fixed top-0 left-0 z-[100001] w-full py-5 md:hidden px-5">
         <div className="flex items-center justify-between w-full">
           <Wordmark onClick={(e) => handleMobileNav(e, "top")} />
           <button
@@ -98,7 +116,7 @@ function Navbar() {
           Full-viewport panel below the navbar, carrying the same links as
           the desktop bar plus the contact actions. */}
       <div
-        className={`fixed inset-0 z-[100000] lg:hidden transition-opacity duration-300 ${
+        className={`fixed inset-0 z-[100000] md:hidden transition-opacity duration-300 ${
           mobileOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
         }`}
         aria-hidden={!mobileOpen}
@@ -176,12 +194,17 @@ function Navbar() {
           Inline row: wordmark left, nav links centre-right, then the theme
           toggle and CTA. Everything sits in the bar itself, so there's no
           dropdown panel on desktop any more. */}
+      {/* Shown from `md:` (768px) rather than `lg:` (1024px): a landscape
+          tablet has room for the real nav, and the single lg cutover was
+          handing every tablet the phone hamburger. Spacing and padding step up
+          at lg so the desktop bar is unchanged, while the 768-1023px band gets
+          a condensed version that still fits on one line. */}
       <div className="fixed top-0 left-0 w-full px-6 lg:px-20 z-[100001]">
-        <div className="hidden lg:flex items-center justify-between pt-8 pb-6">
+        <div className="hidden md:flex items-center justify-between pt-6 pb-5 lg:pt-8 lg:pb-6">
           <Wordmark onClick={(e) => handleDesktopNav(e, "top")} />
 
-          <div className="flex items-center gap-10">
-            <nav className="flex items-center gap-9">
+          <div className="flex items-center gap-4 lg:gap-10">
+            <nav className="flex items-center gap-4 lg:gap-9">
               {NAV_ITEMS.map((item) => (
                 <a
                   key={item.target}

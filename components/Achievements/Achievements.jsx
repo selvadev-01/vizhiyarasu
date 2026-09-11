@@ -1,11 +1,10 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import { ACHIEVEMENTS } from "../../data/profile";
 import { ToolsCopy, ToolsOrbit } from "../ui/integrations-section";
+import useScrollReveal from "../utils/useScrollReveal";
 import "./Achievements.css";
 
 /**
@@ -66,31 +65,21 @@ const Achievements = () => {
   const sectionRef = useRef(null);
   const reducedMotion = usePrefersReducedMotion();
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    // Skipping the context entirely leaves the markup at its final state —
-    // no tween means nothing to reset.
-    if (reducedMotion) return;
+  // One trigger for the whole ledger, unlike the project and experience lists:
+  // the items are short rows that fit the viewport together, so a shared
+  // stagger reads as a single cascade rather than each row arriving alone.
+  const build = useCallback((reveal, tier) => {
+    reveal(sectionRef.current.querySelectorAll(".ach-item"), {
+      trigger: sectionRef.current,
+      opacity: 0,
+      y: tier.revealDistance,
+      x: tier.slideX,
+      duration: tier.revealDuration,
+      stagger: tier.revealStagger,
+    });
+  }, []);
 
-    gsap.registerPlugin(ScrollTrigger);
-
-    const ctx = gsap.context(() => {
-      gsap.from(".ach-item", {
-        opacity: 0,
-        y: 32,
-        duration: 0.7,
-        stagger: 0.08,
-        ease: "power3.out",
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          start: "top 85%",
-          once: true,
-        },
-      });
-    }, sectionRef.current);
-
-    return () => ctx.revert();
-  }, [reducedMotion]);
+  useScrollReveal({ scopeRef: sectionRef, reducedMotion, build });
 
   if (!ACHIEVEMENTS.length) return null;
 

@@ -51,7 +51,9 @@ const Wordmark = ({ onClick, subtitle = "SYSTEM ONLINE" }) => (
         {PROFILE.firstName}
         <span className="text-accent">.</span>
       </span>
-      <span className="font-mono text-[0.55rem] tracking-[0.35em] text-fg-subtle mt-1.5 uppercase whitespace-nowrap">
+      {/* Tracking is eased back at the narrowest widths: 0.35em on a nowrap
+          string pushes the lockup into the hamburger on a ~320px bar. */}
+      <span className="font-mono text-[0.55rem] tracking-[0.22em] sm:tracking-[0.35em] text-fg-subtle mt-1.5 uppercase whitespace-nowrap">
         {subtitle}
       </span>
     </span>

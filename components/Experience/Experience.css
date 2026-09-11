@@ -171,7 +171,11 @@
   letter-spacing: 0.14em;
   font-weight: 600;
   text-transform: uppercase;
-  color: var(--color-accent);
+  /* Not --color-accent directly: on the dark theme that pairing (#4A83FF on
+     #1B2540) measures 4.32:1, just under AA. --color-accent-on-soft is the
+     accent lifted only where it sits on the soft accent fill, so the brand
+     colour is unchanged everywhere else. */
+  color: var(--color-accent-on-soft);
   background-color: var(--color-accent-soft);
   border-radius: 999px;
   padding: 0.25em 0.7em;

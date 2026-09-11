@@ -46,9 +46,19 @@ const Stars = () => {
   const initialGeometry = new THREE.SphereGeometry(2, 64, 64);
   const scrollObject = useScroll();
   let  finalGeometry = undefined;
-  fetchData('/assets/cross.buf').then(mesh => {
-    finalGeometry = mesh.geometry;
-  })
+  // `/assets/cross.buf` is not present in public/, so this fetch resolves with
+  // the 404 HTML page. onBufferLoad then reads that markup's first 4 bytes as a
+  // length header and tries to allocate a ~1.3GB typed array, throwing
+  // "RangeError: Invalid typed array length" on every page load. Guarding here
+  // keeps the morph target optional: the star sphere renders either way, and
+  // the scroll morph simply stays inactive while the asset is missing.
+  fetchData('/assets/cross.buf')
+    .then(mesh => {
+      finalGeometry = mesh.geometry;
+    })
+    .catch(() => {
+      finalGeometry = undefined;
+    })
 
   starsGeometry.setAttribute("position", new THREE.Float32BufferAttribute(initialGeometry.attributes.position.array, 3));
 

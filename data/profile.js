@@ -12,16 +12,19 @@ export const PROFILE = {
   // #hero-heading in globals.css. Split on the newline rather than the space
   // so the break point is fixed instead of at the mercy of the type scale.
   heroName: "VIZHIYARASU\nSAMPATH",
-  title: "Software Development Engineer in Test (SDET)",
+  title: "AI-Assisted SDET",
   shortTitle: "SDET",
+  // The resume's positioning line, under the name.
+  positioning:
+    "AI-Assisted SDET • Manual & Automation Testing • Prompt Engineering",
   // The hero renders `title` in full beneath the wordmark. Split across fixed
   // lines so the wrap points stay put at every breakpoint instead of shifting
   // with the type scale — see #hero-role in globals.css.
   heroTitle: "SOFTWARE DEVELOPMENT\nENGINEER IN TEST (SDET)",
   tagline: "Testing quality into software.",
   summary: [
-    "Vizhiyarasu Sampath is an SDET with 1.8+ years delivering quality across SaaS and ERP products, spanning manual testing, test automation, AI-assisted testing, and frontend development.",
-    "He owns the full testing lifecycle — requirement analysis, test design, execution, regression, and defect tracking — while engineering frontend features with React.js and Next.js.",
+    "Vizhiyarasu Sampath is an SDET with 2+ years delivering quality across three concurrent SaaS and ERP products, spanning manual testing, test automation, AI-assisted testing, and frontend development.",
+    "Promoted three times in 18 months — Junior Quality Engineer to Associate Quality Engineer to SDET — he owns the full testing lifecycle across Vruksha, Varai and Eythio while engineering frontend features with React.js and Next.js.",
   ],
   // Used in the footer under the wordmark.
   footerBio: [
@@ -35,7 +38,7 @@ export const CONTACT = {
   phoneDisplay: "+91 80982 34425",
   phoneHref: "tel:+918098234425",
   whatsappUrl: "https://wa.me/918098234425",
-  location: "Mannargudi, Thiruvarur (DT), Tamil Nadu, India",
+  location: "Thanjavur, Tamil Nadu, India",
   resumeUrl: "/Vizhiyarasu_Resume_Professional.pdf",
 };
 
@@ -93,6 +96,10 @@ export const SKILLS = [
     group: "Databases",
     items: ["MySQL", "RDBMS", "JSON"],
   },
+  {
+    group: "Soft Skills",
+    items: ["Problem-Solving", "Teamwork", "Adaptability", "Ownership"],
+  },
 ];
 
 // Shape matches the `Row` component in components/Projects/Projects.jsx:
@@ -101,62 +108,55 @@ export const SKILLS = [
 export const PROJECTS = [
   {
     name: "Eythio — Task Management Platform",
-    role: "Frontend Developer & Software Tester",
+    role: "Developer & Tester",
     href: null,
     kind: "SaaS",
-    note: "Built responsive UI with React.js, Next.js and Tailwind CSS; ran functional, regression, integration and UAT testing.",
+    note: "Unified release planning, sprint execution and bug tracking with built-in cost intelligence. Built responsive Kanban, Gantt and Dashboard UI, and validated RBAC and audit-log accuracy across workspace permissions.",
   },
   {
     name: "Varai — ERP Application",
-    role: "Frontend Developer & Software Tester",
+    role: "Developer & Tester",
     href: null,
     kind: "ERP",
-    note: "Developed frontend modules and converted requirements into user stories; created regression suites and AI-assisted automation scripts.",
+    note: "Sales, project and operations platform for system integrators and contractors. Developed authentication, bid-to-project conversion and multi-region/currency setup flows; covered signup, sign-in and role-based access with test and automation scripts.",
   },
   {
-    name: "Aveli — SaaS Cybersecurity Product",
-    role: "Software Tester",
-    href: null,
-    kind: "Security",
-    note: "End-to-end manual testing of cybersecurity SaaS modules, with basic-level security testing support.",
-  },
-  {
-    name: "Vruksha — Real Estate ERP",
-    role: "Software Tester",
+    name: "Vruksha — Real Estate ERP Application",
+    role: "Tester",
     href: null,
     kind: "ERP",
-    note: "Requirement analysis, functional and regression testing, and defect management; authored user stories and test data.",
+    note: "Single source of truth for land, projects, partners and money. Tested the Stock → Project → Subproject → Unit → Sale chain, partner ledgers, bank-transaction mapping and GST/TDS handling.",
   },
   {
-    name: "25YearsMore — Social & Community Platform",
-    role: "Software Tester",
+    name: "25YearsMore — Social Networking & Community Platform",
+    role: "Tester",
     href: null,
     kind: "Platform",
-    note: "End-to-end manual testing of UI behaviour and business logic; logged and tracked defects in Jira and Bugasura.",
+    note: "Community platform for people aged 50–65. End-to-end manual testing of communities, events and coaching modules, the Life 2.0 readiness assessment, and defect tracking in Jira and Bugasura.",
   },
 ];
 
 export const EXPERIENCE = [
   {
-    name: "Arivar Techlabs Private Limited",
+    name: "Arivar Techlabs Private Limited (Yakkaspace Group), Thanjavur",
     role: "Software Development Engineer in Test (SDET)",
     href: null,
     kind: "Apr 2026 — Present",
-    note: "Engineer frontend features and own functional, regression, integration, API and UAT testing across SaaS and ERP products. Drive Katalon Studio automation and leverage Claude Code, ChatGPT and GitHub Copilot to accelerate delivery.",
+    note: "Engineer frontend features and own functional, regression, integration, API and UAT testing across three products (Vruksha, Varai, Eythio). Drive Katalon Studio automation across the full regression suite, review AI-generated Playwright and Selenium scripts, and manage defect workflows with MCP tools.",
   },
   {
-    name: "Arivar Techlabs Private Limited",
+    name: "Arivar Techlabs Private Limited (Yakkaspace Group), Thanjavur",
     role: "Associate Quality Engineer",
     href: null,
     kind: "Oct 2025 — Mar 2026",
-    note: "Delivered manual and AI-assisted testing across SaaS and ERP products. Designed test cases, test data sets and regression suites, and drove release validation.",
+    note: "Delivered manual and AI-assisted testing across three SaaS and ERP products. Designed test cases, test data sets and regression suites, supported frontend validation, and drove release validation across multiple cycles.",
   },
   {
-    name: "Yakkaservices Private Limited",
+    name: "Yakkaservices Private Limited (Yakkaspace Group), Thanjavur",
     role: "Junior Quality Engineer",
     href: null,
     kind: "Nov 2024 — Sep 2025",
-    note: "Owned end-to-end manual testing for SaaS, ERP and web/mobile applications. Built Katalon Studio automation and ran foundational security testing with OWASP ZAP and Burp Suite.",
+    note: "Owned end-to-end manual testing for SaaS, ERP and web/mobile applications including 25YearsMore. Built Katalon Studio automation, validated UI behaviour across web and mobile, and ran foundational security testing with OWASP ZAP and Burp Suite.",
   },
 ];
 
@@ -180,10 +180,10 @@ export const EDUCATION = [
     role: "Yakkaservices (Yakkaspace)",
     href: null,
     kind: "Jul — Oct 2024",
-    note: "Modern web development with React.js, Next.js, Tailwind CSS and Supabase.",
+    note: "Modern web development with React.js, Next.js, Tailwind CSS and Supabase; built and tested responsive UI components.",
   },
   {
-    name: "Web Development Trainee",
+    name: "Web Development Trainee / Intern",
     role: "SAIO",
     href: null,
     kind: "Oct 2023",
@@ -235,6 +235,6 @@ export const ACHIEVEMENTS = [
     label: "Delivery",
     title: "Three concurrent products, shipped",
     description:
-      "Ran quality for Aveli, Vruksha and Varai in parallel, holding each to its release date without trading away test depth.",
+      "Ran quality for Vruksha, Varai and Eythio in parallel, holding each to its release date without trading away test depth.",
   },
 ];

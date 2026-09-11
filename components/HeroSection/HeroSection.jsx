@@ -5,6 +5,8 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import dynamic from "next/dynamic";
 import { PROFILE } from "../../data/profile";
+import useDeviceTier, { readTierNow, TABLET_MIN } from "../utils/useDeviceTier";
+import { getMotionTier } from "../utils/motionTiers";
 
 // Lazy-loaded so `three` (~150kB gz) splits into its own chunk instead of
 // blocking first paint. It's a decorative background behind the hero text —
@@ -57,12 +59,21 @@ const HeroSection = () => {
   const endLineRef = useRef(null);
   const parallaxInstanceRef = useRef(null);
   const [loaderDone, setLoaderDone] = useState(false);
+  // Mirrors `loaderDone` for the mount-once effect below, which would otherwise
+  // close over the initial `false` for the life of the component.
+  const loaderDoneRef = useRef(false);
 
   // Track the active theme so the WebGL fluid can use a colour that suits the
   // current background. Starts at 'dark' to match the server-rendered default
   // in app/layout.js, then syncs to whatever the bootstrap script resolved and
   // follows any later toggle via the data-theme attribute.
   const [isDark, setIsDark] = useState(true);
+
+  // Drives the tiered cost of the WebGL fluid below. `fluidInteractive` is true
+  // only on desktop; mobile and tablet keep the ambient wash but at roughly half
+  // the per-frame GPU cost.
+  const deviceTier = useDeviceTier();
+  const { fluidInteractive } = getMotionTier(deviceTier);
 
   useEffect(() => {
     if (typeof document === "undefined") return;
@@ -116,26 +127,29 @@ const HeroSection = () => {
     window.addEventListener("touchstart", handleFirstGesture, { once: true, passive: true });
     window.addEventListener("click", handleFirstGesture, { once: true });
 
-    // Initialize wagerfield/parallax (parallax-js) after GSAP reveal finishes.
-    // On touch devices we keep the gyroscope-driven motion, but soften the
-    // movement so the hero still feels stable on phones.
+    // Initialize wagerfield/parallax (parallax-js) after the GSAP reveal.
+    //
+    // Desktop only, per the shared motion budget: the effect tracks a cursor,
+    // which a coarse pointer does not have. Previously this ran everywhere and
+    // fell back to gyroscope input, which meant phones paid for the library
+    // download plus continuous devicemotion work for an effect that mostly
+    // reads as drift. The dynamic import is inside the guard so the bundle is
+    // never even fetched on mobile and tablet.
     const initParallax = async () => {
       if (typeof window === "undefined" || !sectionRef.current) return;
-      const isTouch =
-        window.matchMedia("(hover: none), (pointer: coarse)").matches ||
-        window.innerWidth < 1024;
+      if (!getMotionTier(readTierNow()).parallax) return;
       try {
         const mod = await import("parallax-js");
         const Parallax = mod.default || mod;
         if (!sectionRef.current) return;
         parallaxInstanceRef.current = new Parallax(sectionRef.current, {
           relativeInput: true,
-          hoverOnly: !isTouch,
+          hoverOnly: true,
           selector: ".hero-layer",
-          scalarX: isTouch ? 4 : 2,
-          scalarY: isTouch ? 4 : 2,
-          frictionX: isTouch ? 0.18 : 0.1,
-          frictionY: isTouch ? 0.18 : 0.1,
+          scalarX: 2,
+          scalarY: 2,
+          frictionX: 0.1,
+          frictionY: 0.1,
         });
       } catch (err) {
         console.error("Failed to init parallax-js:", err);
@@ -143,13 +157,36 @@ const HeroSection = () => {
     };
 
     // Pick stroke widths based on viewport so the strokes don't dwarf the hero
-    // on phones.
-    const isMobile = window.matchMedia("(max-width: 768px)").matches;
-    const stroke1Width = isMobile ? "40vw" : "22vw";
-    const stroke2Width = isMobile ? "30vw" : "16vw";
+    // on phones. The widths stay in `vw` so they keep tracking the viewport,
+    // but the mobile/desktop *ratio* is chosen here at build time — so crossing
+    // the 768px breakpoint (a rotate, or resizing a desktop window) has to
+    // re-apply it, otherwise the hero keeps the ratio it loaded with.
+    const strokeQuery = window.matchMedia(`(max-width: ${TABLET_MIN}px)`);
+    const strokeWidthsFor = (matches) => ({
+      stroke1: matches ? "40vw" : "22vw",
+      stroke2: matches ? "30vw" : "16vw",
+    });
+    const { stroke1: stroke1Width, stroke2: stroke2Width } = strokeWidthsFor(
+      strokeQuery.matches
+    );
+
+    // Only re-applied once the intro timeline has finished; while it is still
+    // running the tweens below own these properties and would fight this write.
+    const handleStrokeQueryChange = (event) => {
+      if (!loaderDoneRef.current) return;
+      const next = strokeWidthsFor(event.matches);
+      if (stroke1Ref.current) {
+        gsap.set(stroke1Ref.current, { width: next.stroke1 });
+      }
+      if (stroke2Ref.current) {
+        gsap.set(stroke2Ref.current, { width: next.stroke2 });
+      }
+    };
+    strokeQuery.addEventListener("change", handleStrokeQueryChange);
 
     const tl = gsap.timeline({
       onComplete: () => {
+        loaderDoneRef.current = true;
         setLoaderDone(true);
         document.body.style.overflow = "";
         initParallax();
@@ -230,6 +267,7 @@ const HeroSection = () => {
         } catch (e) {}
         parallaxInstanceRef.current = null;
       }
+      strokeQuery.removeEventListener("change", handleStrokeQueryChange);
       window.removeEventListener("touchstart", handleFirstGesture);
       window.removeEventListener("click", handleFirstGesture);
       document.body.style.overflow = "";
@@ -259,8 +297,13 @@ const HeroSection = () => {
             // iteration is a full-screen GPU pass. 16 is visually
             // indistinguishable here because the result is a diffuse blur,
             // so the extra 16 passes were pure overhead.
-            iterationsPoisson={16}
-            resolution={0.4}
+            //
+            // Halved again off-desktop: the sim is a diffuse background wash, so
+            // the drop is hard to see, but it is the single most expensive thing
+            // on the page and phones render it on a much tighter GPU and power
+            // budget. Same reasoning for the lower simulation resolution.
+            iterationsPoisson={fluidInteractive ? 16 : 8}
+            resolution={fluidInteractive ? 0.4 : 0.25}
             isBounce={false}
             autoDemo={true}
             autoSpeed={0.5}
