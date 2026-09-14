@@ -30,15 +30,23 @@ const groupByCompany = (roles) =>
 /**
  * Derives a company's overall span from its roles rather than storing it.
  *
- * `kind` is a display string like "Apr 2026 — Present". The data is ordered
+ * `kind` is a display string like "Apr 2026 - Present". The data is ordered
  * newest-first, so the span runs from the *last* role's start to the *first*
- * role's end. Splitting on the em dash avoids adding start/end fields to
- * data/profile.js for something that is purely presentational.
+ * role's end. Deriving it avoids adding start/end fields to data/profile.js
+ * for something that is purely presentational.
+ *
+ * The split accepts a hyphen, en dash or em dash. The data now uses a plain
+ * hyphen throughout, but a range separator is exactly the kind of character
+ * that gets pasted back in from a resume or a CV editor, and a parser that
+ * silently returned the whole string as `start` would drop the end date with
+ * no visible error.
  */
+const RANGE_SEPARATOR = /\s*[-–—]\s*/;
+
 const companySpan = (roles) => {
-  const [start] = roles[roles.length - 1].kind.split("—").map((s) => s.trim());
-  const end = roles[0].kind.split("—").map((s) => s.trim())[1];
-  return end ? `${start} — ${end}` : start;
+  const [start] = roles[roles.length - 1].kind.split(RANGE_SEPARATOR);
+  const end = roles[0].kind.split(RANGE_SEPARATOR)[1];
+  return end ? `${start.trim()} - ${end.trim()}` : start.trim();
 };
 
 const isCurrent = (role) => /present/i.test(role.kind);

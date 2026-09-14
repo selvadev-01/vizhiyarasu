@@ -183,7 +183,6 @@
 
 html, body {
   overscroll-behavior: none;
-  overflow-x: hidden;
   width: 100%;
   -webkit-tap-highlight-color: transparent;
   -webkit-text-size-adjust: 100%;
@@ -213,8 +212,35 @@ body::-webkit-scrollbar {
   display: none;
 }
 
+/* ── HORIZONTAL OVERFLOW CONTAINMENT ──
+   Sideways overflow is clipped on <html> ONLY, never on <body>.
+
+   Why this matters (this was the mobile "page won't scroll" bug): per the CSS
+   overflow spec, when one axis is `hidden` and the other is `visible`, the
+   visible axis computes to `auto`. Setting `overflow-x: hidden` on <body>
+   therefore silently made <body> `overflow-y: auto` — its own scroll container.
+   Because <body> is also full-height (scrollHeight === clientHeight), that
+   container had nothing to scroll, so touch gestures landing on it were
+   absorbed instead of propagating to the real scroller on <html>. Programmatic
+   window.scrollTo still worked, which is why the bug only ever showed up under
+   a finger.
+
+   `overflow-x: clip` is used rather than `hidden`: clip does NOT create a
+   scroll container, so it cannot resurrect the same problem on <html>, and it
+   leaves `position: sticky` / ScrollTrigger pinning working. The `hidden`
+   line below it is the fallback for browsers without `clip` support. */
 html {
   scrollbar-width: none;
+  overflow-x: hidden;
+  overflow-x: clip;
+}
+
+/* <body> stays a plain block box — no overflow property, so it never becomes
+   a scroll container. Width containment is handled by the wrapper in
+   app/page.js, which uses `w-full` rather than `w-screen` (100vw ignores the
+   scrollbar and overflows by its width on desktop). */
+body {
+  position: relative;
 }
 
 .nav_btn_lg{
@@ -1487,6 +1513,42 @@ html {
 
 /* ── MOBILE / TABLET ── */
 @media (max-width: 1024px) {
+  /* ── HERO — TABLET BAND (769–1024px) ──
+     The hero previously had only two sizings: the desktop rules (widths in
+     `vh`) and a `max-width: 768px` phone block. That left the 769–1024px band
+     — every iPad in portrait — on desktop geometry, where `width: 88vh` is
+     resolved against a TALL viewport: on an 810×1080 iPad that is 950px of
+     portrait inside an 810px screen, so it overhung both edges (measured
+     -110px to 840px).
+
+     Sizing from `vw` with a `vh` ceiling keeps the portrait inside the viewport
+     on any tablet aspect ratio. The phone block below overrides these again. */
+  #hero-img {
+    width: min(70vw, 62vh);
+    height: min(62vh, 90vw);
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  /* The strokes are decorative and were sized in `vw` against desktop
+     proportions; at tablet width they crowded the portrait and hung off the
+     left edge. Pulled in and kept fully on-screen. */
+  #hero-stroke-1 {
+    left: 0;
+    width: 24vw;
+    height: 22vh;
+  }
+
+  #hero-stroke-1 img { width: 24vw; }
+
+  #hero-stroke-2 {
+    right: 0;
+    width: 20vw;
+    height: 20vh;
+  }
+
+  #hero-stroke-2 img { width: 20vw; }
+
   /* Contact — slightly larger eyebrow / button text on tablet */
   #ct-eyebrow { font-size: 1.4vw; letter-spacing: 0.2em; }
   #ct-email { font-size: 2vw; }

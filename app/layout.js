@@ -13,16 +13,16 @@ const inter = Inter({
 })
 
 export const metadata = {
-  title: 'Vizhiyarasu Sampath — SDET',
+  title: 'Vizhiyarasu Sampath, SDET',
   description:
-    'SDET with 2+ years delivering quality across SaaS and ERP products — manual testing, automation, AI-assisted testing, and frontend development.',
+    'SDET with 2+ years delivering quality across SaaS and ERP products: manual testing, automation, AI-assisted testing, and frontend development.',
   icons: {
     icon: '/icon.png',
   },
   openGraph: {
-    title: 'Vizhiyarasu Sampath — SDET',
+    title: 'Vizhiyarasu Sampath, SDET',
     description:
-      'SDET with 2+ years delivering quality across SaaS and ERP products — manual testing, automation, AI-assisted testing, and frontend development.',
+      'SDET with 2+ years delivering quality across SaaS and ERP products: manual testing, automation, AI-assisted testing, and frontend development.',
     type: 'website',
   },
 }

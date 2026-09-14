@@ -52,10 +52,18 @@ export function ToolsOrbit({ className }) {
         className,
       )}
     >
-      {/* Spinning highlight rings — decorative, hover-only. */}
+      {/* Spinning highlight rings — decorative, hover-only.
+
+          Centred with `left-1/2 top-1/2 -translate-*` and sized by `h-full`
+          rather than stretched with `inset-0`. The wrapper is aspect-[16/10]
+          (wider than tall), so an `inset-0` box combined with `aspect-square`
+          resolved its width from the full stretched height and pushed the ring
+          past the wrapper's right edge — measured 15px of horizontal page
+          overflow at a 1280px viewport. Sizing from the height keeps the circle
+          round and always within the wider box. */}
       <div
         role="presentation"
-        className="absolute inset-0 z-10 aspect-square animate-spin items-center justify-center rounded-full border-t border-orbit-spin/40 bg-gradient-to-b from-orbit-spin/25 to-transparent to-[25%] opacity-0 transition-opacity duration-[3.5s] group-hover:opacity-100"
+        className="absolute left-1/2 top-1/2 z-10 h-full max-w-full -translate-x-1/2 -translate-y-1/2 aspect-square animate-spin items-center justify-center rounded-full border-t border-orbit-spin/40 bg-gradient-to-b from-orbit-spin/25 to-transparent to-[25%] opacity-0 transition-opacity duration-[3.5s] group-hover:opacity-100"
       />
       <div
         role="presentation"
@@ -63,7 +71,10 @@ export function ToolsOrbit({ className }) {
       />
 
       {/* Outer ring + its three nodes. */}
-      <div className="absolute inset-0 flex aspect-square items-center justify-center rounded-full border-t border-orbit-glow/25 bg-gradient-to-b from-orbit-glow/[0.16] to-transparent to-[25%]">
+      {/* Sized from the height and centred, for the same reason as the spinning
+          ring above — this one also carries the three outer orbit nodes, so a
+          ring wider than its wrapper dragged those nodes off-screen too. */}
+      <div className="absolute left-1/2 top-1/2 flex h-full max-w-full -translate-x-1/2 -translate-y-1/2 aspect-square items-center justify-center rounded-full border-t border-orbit-glow/25 bg-gradient-to-b from-orbit-glow/[0.16] to-transparent to-[25%]">
         <OrbitNode
           className="absolute left-0 top-1/4 -translate-x-[16.666%] -translate-y-1/4"
           {...OUTER_RING[0]}
@@ -119,7 +130,7 @@ export function ToolsCopy({ className }) {
         Tools &amp; tech I work with
       </h2>
       <p className="text-muted-foreground">
-        The stack behind the testing — from automation frameworks and API tooling to the AI
+        The stack behind the testing, from automation frameworks and API tooling to the AI
         assistants that speed up the work.
       </p>
 

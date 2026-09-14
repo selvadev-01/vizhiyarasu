@@ -53,7 +53,11 @@ const Wordmark = ({ onClick, subtitle = "SYSTEM ONLINE" }) => (
       </span>
       {/* Tracking is eased back at the narrowest widths: 0.35em on a nowrap
           string pushes the lockup into the hamburger on a ~320px bar. */}
-      <span className="font-mono text-[0.55rem] tracking-[0.22em] sm:tracking-[0.35em] text-fg-subtle mt-1.5 uppercase whitespace-nowrap">
+      {/* 0.55rem resolved to 8.8px, well under the ~12px legibility floor the
+          rest of the site holds via clamp(). Raised to 0.6875rem (11px) — still
+          clearly subordinate to the name above it, but actually readable. The
+          tracking easing at narrow widths is unchanged. */}
+      <span className="font-mono text-[0.6875rem] tracking-[0.18em] sm:tracking-[0.3em] text-fg-subtle mt-1.5 uppercase whitespace-nowrap">
         {subtitle}
       </span>
     </span>

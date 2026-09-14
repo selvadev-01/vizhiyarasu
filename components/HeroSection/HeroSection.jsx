@@ -87,7 +87,34 @@ const HeroSection = () => {
 
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
+
+    // Scroll is locked for the ~5.5s intro. Every release path below funnels
+    // through this one function so the lock can never outlive the animation:
+    // previously the only release was the timeline's onComplete, which meant a
+    // throw anywhere in this effect — or a tab backgrounded long enough for the
+    // timeline to be starved — left the page permanently unscrollable.
+    const releaseScroll = () => {
+      document.body.style.overflow = "";
+      document.body.style.touchAction = "";
+    };
+
+    // `position/overflow` on <body> is deliberately NOT used to lock scrolling
+    // (that is what created the nested-scroller bug — see globals.css). Locking
+    // via overflow on the element that is not the scroller is safe only because
+    // it is transient and always released below.
     document.body.style.overflow = "hidden";
+
+    // Hard safety net: whatever happens to the timeline, scrolling comes back.
+    // 9s is comfortably past the 5.5s intro, so it only ever fires on failure.
+    const failsafe = window.setTimeout(releaseScroll, 9000);
+
+    // A bailout also has to release the lock, so the page is merely un-animated
+    // rather than frozen if the hero markup is not where we expect it.
+    if (!headingRef.current) {
+      releaseScroll();
+      window.clearTimeout(failsafe);
+      return;
+    }
 
     const headingChars = headingRef.current.querySelectorAll(".hero-char");
 
@@ -188,7 +215,8 @@ const HeroSection = () => {
       onComplete: () => {
         loaderDoneRef.current = true;
         setLoaderDone(true);
-        document.body.style.overflow = "";
+        window.clearTimeout(failsafe);
+        releaseScroll();
         initParallax();
       },
     });
@@ -270,7 +298,8 @@ const HeroSection = () => {
       strokeQuery.removeEventListener("change", handleStrokeQueryChange);
       window.removeEventListener("touchstart", handleFirstGesture);
       window.removeEventListener("click", handleFirstGesture);
-      document.body.style.overflow = "";
+      window.clearTimeout(failsafe);
+      releaseScroll();
     };
   }, []);
 

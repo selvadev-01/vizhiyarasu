@@ -114,7 +114,11 @@ const Contact = () => {
 
       <div id="ct-actions" ref={ctaRef}>
         <a id="ct-btn" href={`mailto:${EMAIL}`}>
-          <span>SAY HELLO</span>
+          {/* "GET IN TOUCH", not "SAY HELLO": the navbar, the mobile menu and
+              the footer all already label this same mailto action "Get in
+              touch". Four labels for one intent (plus "HIRE ME" on the nav CTA)
+              made the page read as four different offers instead of one. */}
+          <span>GET IN TOUCH</span>
           <ArrowUpRight />
         </a>
         <a

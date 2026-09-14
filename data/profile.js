@@ -24,7 +24,7 @@ export const PROFILE = {
   tagline: "Testing quality into software.",
   summary: [
     "Vizhiyarasu Sampath is an SDET with 2+ years delivering quality across three concurrent SaaS and ERP products, spanning manual testing, test automation, AI-assisted testing, and frontend development.",
-    "Promoted three times in 18 months — Junior Quality Engineer to Associate Quality Engineer to SDET — he owns the full testing lifecycle across Vruksha, Varai and Eythio while engineering frontend features with React.js and Next.js.",
+    "Promoted three times in 18 months (Junior Quality Engineer to Associate Quality Engineer to SDET), he owns the full testing lifecycle across Vruksha, Varai and Eythio while engineering frontend features with React.js and Next.js.",
   ],
   // Used in the footer under the wordmark.
   footerBio: [
@@ -90,7 +90,7 @@ export const SKILLS = [
   },
   {
     group: "Security Testing (Basic Level)",
-    items: ["OWASP ZAP", "Burp Suite", "OWASP Top 10 — foundational exposure"],
+    items: ["OWASP ZAP", "Burp Suite", "OWASP Top 10, foundational exposure"],
   },
   {
     group: "Databases",
@@ -107,32 +107,32 @@ export const SKILLS = [
 // resume lists no public URLs — Row renders those as static rows with a dot.
 export const PROJECTS = [
   {
-    name: "Eythio — Task Management Platform",
+    name: "Eythio: Task Management Platform",
     role: "Developer & Tester",
     href: null,
     kind: "SaaS",
     note: "Unified release planning, sprint execution and bug tracking with built-in cost intelligence. Built responsive Kanban, Gantt and Dashboard UI, and validated RBAC and audit-log accuracy across workspace permissions.",
   },
   {
-    name: "Varai — ERP Application",
+    name: "Varai: ERP Application",
     role: "Developer & Tester",
     href: null,
     kind: "ERP",
     note: "Sales, project and operations platform for system integrators and contractors. Developed authentication, bid-to-project conversion and multi-region/currency setup flows; covered signup, sign-in and role-based access with test and automation scripts.",
   },
   {
-    name: "Vruksha — Real Estate ERP Application",
+    name: "Vruksha: Real Estate ERP Application",
     role: "Tester",
     href: null,
     kind: "ERP",
     note: "Single source of truth for land, projects, partners and money. Tested the Stock → Project → Subproject → Unit → Sale chain, partner ledgers, bank-transaction mapping and GST/TDS handling.",
   },
   {
-    name: "25YearsMore — Social Networking & Community Platform",
+    name: "25YearsMore: Social Networking & Community Platform",
     role: "Tester",
     href: null,
     kind: "Platform",
-    note: "Community platform for people aged 50–65. End-to-end manual testing of communities, events and coaching modules, the Life 2.0 readiness assessment, and defect tracking in Jira and Bugasura.",
+    note: "Community platform for people aged 50-65. End-to-end manual testing of communities, events and coaching modules, the Life 2.0 readiness assessment, and defect tracking in Jira and Bugasura.",
   },
 ];
 
@@ -141,21 +141,21 @@ export const EXPERIENCE = [
     name: "Arivar Techlabs Private Limited (Yakkaspace Group), Thanjavur",
     role: "Software Development Engineer in Test (SDET)",
     href: null,
-    kind: "Apr 2026 — Present",
+    kind: "Apr 2026 - Present",
     note: "Engineer frontend features and own functional, regression, integration, API and UAT testing across three products (Vruksha, Varai, Eythio). Drive Katalon Studio automation across the full regression suite, review AI-generated Playwright and Selenium scripts, and manage defect workflows with MCP tools.",
   },
   {
     name: "Arivar Techlabs Private Limited (Yakkaspace Group), Thanjavur",
     role: "Associate Quality Engineer",
     href: null,
-    kind: "Oct 2025 — Mar 2026",
+    kind: "Oct 2025 - Mar 2026",
     note: "Delivered manual and AI-assisted testing across three SaaS and ERP products. Designed test cases, test data sets and regression suites, supported frontend validation, and drove release validation across multiple cycles.",
   },
   {
     name: "Yakkaservices Private Limited (Yakkaspace Group), Thanjavur",
     role: "Junior Quality Engineer",
     href: null,
-    kind: "Nov 2024 — Sep 2025",
+    kind: "Nov 2024 - Sep 2025",
     note: "Owned end-to-end manual testing for SaaS, ERP and web/mobile applications including 25YearsMore. Built Katalon Studio automation, validated UI behaviour across web and mobile, and ran foundational security testing with OWASP ZAP and Burp Suite.",
   },
 ];
@@ -179,7 +179,7 @@ export const EDUCATION = [
     name: "Web Development Intern",
     role: "Yakkaservices (Yakkaspace)",
     href: null,
-    kind: "Jul — Oct 2024",
+    kind: "Jul - Oct 2024",
     note: "Modern web development with React.js, Next.js, Tailwind CSS and Supabase; built and tested responsive UI components.",
   },
   {
@@ -187,13 +187,13 @@ export const EDUCATION = [
     role: "SAIO",
     href: null,
     kind: "Oct 2023",
-    note: "HTML, CSS, JavaScript, React.js and WordPress (Oxygen Builder) — 96% in the final assessment.",
+    note: "HTML, CSS, JavaScript, React.js and WordPress (Oxygen Builder). 96% in the final assessment.",
   },
   {
     name: "Java Development Intern",
     role: "Shiash Info Solutions Pvt. Ltd.",
     href: null,
-    kind: "Apr — Jun 2022",
+    kind: "Apr - Jun 2022",
     note: "Core Java and application development fundamentals with the technical team.",
   },
 ];
@@ -223,7 +223,7 @@ export const ACHIEVEMENTS = [
     label: "Defect Prevention",
     title: "Fewer defects reaching release",
     description:
-      "Cut release-cycle defects by catching issues early — during requirement analysis and first-pass functional testing rather than in UAT.",
+      "Cut release-cycle defects by catching issues early, during requirement analysis and first-pass functional testing rather than in UAT.",
   },
   {
     label: "Automation",

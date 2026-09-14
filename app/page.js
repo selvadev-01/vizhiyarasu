@@ -75,7 +75,12 @@ export default function Home() {
           </div>
         }
       >
-        <div className="bg-bg text-fg h-auto w-screen overflow-x-hidden">
+        {/* `w-full`, not `w-screen`: 100vw includes the scrollbar gutter, so on
+            any desktop browser with a classic scrollbar the wrapper was wider
+            than the viewport — the exact horizontal overflow the now-removed
+            body `overflow-x: hidden` was masking. Clipping moved to <html> in
+            globals.css; see the note there. */}
+        <div className="bg-bg text-fg h-auto w-full">
           <Navbar />
 
           <HeroSection />
